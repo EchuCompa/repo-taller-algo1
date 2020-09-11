@@ -1,0 +1,38 @@
+\documentclass{article}
+\input{Algo1Macros}
+
+\begin{document}
+
+\section{Factorial}
+
+%parrafo 1
+
+\begin{proc}{Factorial}{\In n: \ent, \Out result: \ent}{}
+	\pre{n \geq 0}
+	\post{ (n = 0 \Rightarrow_L result = 1) \land 
+		(n >0 \Rightarrow result = \prod_{k=1}^{n} k) }
+\end{proc}
+
+%parrafo 2
+
+
+\subsection{Definición}
+
+%completar
+
+
+\subsection{Especificación}
+
+%agregar la Especificación de factorial (ver guía)
+
+\subsection{Implementación recursiva}
+
+Aquí podemos ver una implementación recursiva:
+
+\begin{verbatim}
+   factorial n | n == 0 = 1
+               | n >  0 = n * factorial (n-1)
+\end{verbatim}
+
+
+\end{document}

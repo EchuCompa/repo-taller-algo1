@@ -5,7 +5,6 @@
 using namespace std;
 
 
-
 int main()
 {
     vector <vector <int > > mat = {{6 , 12 , 18, 25} ,
@@ -22,7 +21,14 @@ int main()
     vector<vector<int>> tr = { {5,2,3,5},
                                {4,0,7,2},
                                {6,4,0,5} };
-    contarPicos(tr);
+    //contarPicos(tr);
+    vector<vector<int>> terre = { {0,0,0,0,0,0,0,0,0,0,0},
+                                  {0,1,4,3,0,0,4,3,0,0,0},
+                                  {0,0,0,2,0,0,0,6,0,2,0},
+                                  {0,6,5,0,6,0,3,0,0,2,0},
+                                  {0,0,0,0,0,0,0,0,0,0,0}};
+    cout << islas(terre);
+
     return 0;
 }
 

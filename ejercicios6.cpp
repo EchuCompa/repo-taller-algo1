@@ -295,20 +295,11 @@ bool sobresalen(vector<vector<int>> terreno, int n, int& mts) {
 
 
 }
-/*
-int indice_mas_cercano(vector<int> lis, int val) { //Agarra el valor más cercano y menor a val de la lista
-    int indi=0;
-    for (int i=0;i<lis.size();i++) {
-        if (abs( lis[indi]-val ) >= abs(lis[i]-val) && lis[i]<val  ) { //Si la diferencia y el elemento es menor
-            indi=i;
-        }
-    }
-} */
+
 
 
 //Hecho usando ordenamiento de listas
 
-// Explicación detrás de la idea:
 // Si tengo una lista ordenada s = (-10,-9,-3,-4,2,3,4,4,6,7,8,9)
 //Entonces n = 3 es viable pues si resto s[2]+1 a todas las posiciones quedan exactamente
 // 3 posiciones debajo. Pero si n =7, entonces al restar n[6]+1 entonces quedan 8 posiciones,
@@ -330,9 +321,102 @@ bool sobresalen_kul(vector<vector<int>> terreno, int n, int& mts){
 
 }
 
-//c) Falta hacer + usar "DFS + dynamic programming"
+//c) Dividi el proceso en tres partes:
+
+//1) Usar una matriz parte en la cuál "etiquetar" las posiciones, dividiendo a las tierras por
+//isla y a las que son agua metiendolas en una "isla 0". Los bordes
+
+//Además si encuentro que dos vecinos están en diferentes islas unifico esas islas diciendo que
+//isla_1=isla_2.
+
+//2)  Luego reviso las posiciones taggeadas y me fijo si las posiciones cumplen las caracteristícas
+// de una isla. Que son 3: Tener vecinos tierra de misma isla /  tener vecinos de agua / no estar en bordes
+
+//3) Contar las islas válidas que hay.
+
+//PD: Para que sea isla tiene que estar rodeada de AGUA, por lo tanto no cuenta que este en un borde.
+
+vector<int> islasDeVecinos(tuple<int,int> posi,vector<vector<int>>& terreno, vector<vector<int>>& etiquetado) {
+    int i = get<0>(posi), j=get<1>(posi);
+    vector<int> islas_vecis = {};
+    for (int k =i-1; k<i+1;k++) {  //No me importa revisar los de más abajo porque no fueron evaluados
+        if ( k>=0 && k<terreno.size() ) { //Si k está en rango
+            for (int l = j-1; l < j + 2; l++) {
+                    if ( (j>=0 && k<terreno.size()) && (etiquetado[k][l] != 0)  ) {
+                    if (find(islas_vecis.begin(), islas_vecis.end(), etiquetado[k][l]) == islas_vecis.end()) //Si es un vecino de una nueva isla
+                    islas_vecis.push_back(etiquetado[k][l]); //La isla de uno de sus vecinos
+                }
+            }
+        }
+    }
+    return islas_vecis;
+}
 
 
+void renombrarIslas(int isla_1,int isla_2, tuple<int,int> posi, vector<vector<int>>& etiquetado) {
+    for (int i=0;i<get<0>(posi);i++) {
+        for (int j=0;j<etiquetado[0].size();j++) {
+            if (etiquetado[i][j] == isla_1) { //Renombro las posiciones de la isla_1
+                etiquetado[i][j] = isla_2;
+            }
+        }
+    }
+}
+
+int etiquetarPosiciones(vector<vector<int>> terreno, vector<vector<int>>& etiquetado) {
+    int isla=0,cant_islas=0;
+    vector<int> islas_vecinos;
+    for (int i=0;i<terreno.size();i++){
+        for (int j=0;j<terreno[0].size();j++) {
+            if (terreno[i][j] <= 0) {
+                etiquetado[i][j]=0;
+            }
+            else {
+                islas_vecinos = islasDeVecinos(make_tuple(i,j),terreno,etiquetado);
+                cant_islas = islas_vecinos.size();
+                if ( cant_islas == 0) { //Si no tiene ningún vecino "creo una nueva isla"
+                    isla++;
+                    etiquetado[i][j] = isla;
+                }
+                else { //Sino se suma a la isla de su vecino
+                    if (cant_islas == 1) { //Si solo tiene un tipo de vecino
+                        etiquetado[i][j] = islas_vecinos[0];
+                    }
+                    else { //Si tiene vecinos de dos islas entonces unifico ambas islas cómo una sola
+                        renombrarIslas(islas_vecinos[0], islas_vecinos[1], make_tuple(i,j),etiquetado);
+                        etiquetado[i][j] = islas_vecinos[1];
+                    }
+                }
+            }
+        }
+    }
+    return isla;
+}
+
+
+int islas_no_validas(vector<vector<int>>& etiquetado) {
+    vector<int> islas_no_validas = {};
+    for (int i =0;i<etiquetado.size();i++) {
+        for (int j=0;j<etiquetado[0].size();j++) {
+            if (etiquetado[i][j] != 0 && (i == etiquetado.size() || j == etiquetado[0].size()) ) { //Si la isla es un borde
+                if (find(islas_no_validas.begin(), islas_no_validas.end(), etiquetado[i][j]) == islas_no_validas.end()) {
+                    islas_no_validas.push_back(etiquetado[i][j]); //Agrego la isla a la lista de islas no válidas
+                }
+            }
+        }
+    }
+    return islas_no_validas.size();
+}
+
+
+int islas(vector<vector<int>> terreno) {
+    vector<vector<int>> etiquetado( terreno.size(), vector<int>(terreno[0].size(),0) );
+    int cant_islas =etiquetarPosiciones(terreno,etiquetado);
+    mostrarMatriz(etiquetado);
+    int cant_islas_no_validas = islas_no_validas(etiquetado);
+    return cant_islas- cant_islas_no_validas;
+
+}
 
 /************* Ejercicio 9 *************/
 
@@ -351,7 +435,7 @@ tuple<int,int> vecinoMasBajo(tuple<int,int> posi,vector<vector<int>>  terreno) {
     for (int k =i-1; k<i+2;k++) {
         if ( k>=0 && k<terreno.size() ) { //Si k está en rango
             for (int l = j - 1; l < j + 2; l++) {
-                if ( (j>=0 && k<terreno.size())  && (terreno[k][l] < terreno[x][y] ) ) {
+                if ( (l>=0 && l<terreno.size())  && (terreno[k][l] < terreno[x][y] ) ) {
                     x=k;y=l; //Se convierte en el vecino más bajo
                 }
             }
@@ -565,6 +649,7 @@ void insertarEnTodasLasPosis(vector<vector<int>>& permus, int x) {
     }
     permus =permus_modificado;
 }
+
 void permutaciones(int n, vector<vector<int>>& permus) {
     if(n==0) {
         insertarEnTodasLasPosis(permus,n);
@@ -612,7 +697,6 @@ bool haySolucionParaNReinas(int n) {
         }
     }
     return false;
-
 }
 
 //Otra opción mucho más cheta es ir fijandome directamente si la nueva reina cumple  la "regla de las

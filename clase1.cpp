@@ -226,7 +226,7 @@ int num_comb_for(float n, float k){
 //Acá es donde fui testeando que no haya hecho cualquier cosa
 int main () {
     //std :: cout << "El resultado es: " << f (10,25) << std :: endl ;
-    std :: cout << num_comb_whil(100,5) << "\n";
+    //std :: cout << num_comb_whil(100,5) << "\n";
     return 0;
 }
 

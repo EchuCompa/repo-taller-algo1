@@ -1,4 +1,6 @@
-#include "ejercicios6.h"
+# include <iostream>
+# include <fstream>
+#include <cmath> //Para el square root
 
 using namespace std; // para ahorrarme el std
 
@@ -189,7 +191,6 @@ void primosGemelos_iter(int n, int& res1,int& res2){
 }
 
 int main () {
-    vector<int> j = {1,2,3,4,5,6,7,8,9};
-    cout << minimo(j);
+
     return 0;
 }

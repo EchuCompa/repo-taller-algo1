@@ -1,0 +1,144 @@
+//Centro = Centro de vacunación
+TAD DNI, CIUDAD es String
+TAD VACUNAS es Nat //Representa los frascos que llegaron 
+TAD PERSONA es Tupla(Dni, Ciudad)
+
+TAD NAT extiende Nat
+
+	Otras Operaciones: 
+		DividirPor5: nat -> nat //Es una división entre enteros redondeando para abajo
+		
+	Axiomas:
+		
+		DividirPor5(n) ≡ if n<5 then
+			0 //Redondeo para abajo
+		else
+			1 + DividirPor5(n-5)
+		fi
+
+	Fin TAD
+
+
+TAD SALUD
+	Igualdad Observacional:();
+	Géneros: salud
+	Exporta: salud, observadores, generadores, 
+	Usa: Bool, Nat, Conju, String, Tupla
+	
+	Observadores Básicos:
+		centros: salud -> conj(ciudad)  //Entiendo que hay solo un centro por ciudad
+		esperandoEnCiudad: ciudad centro x salud -> conj(DNI) {centro ∈ centros(s)}
+		frascosEnCiudad: ciudad centro x salud -> vacunas		{centro ∈ centros(s)}
+		vacunadosEnCiudad: ciudad centro x salud -> nat	{centro ∈ centros(s)}
+		
+	Generadores:
+		iniciaVacunacion:	conj(ciudad) centros		-> salud
+		lleganVacunas: vacunas x ciudad centro x salud s -> salud {centro ∈ centros(s)}
+		llegaPlanilla: ciudad centro x conj(persona) planilla x salud s -> salud {centro ∈ centros(s)
+				∧ (∄ per : persona) (per ∈ planilla ∧ (π₂(per) != centro ∨ π₁(per) ∈ vacunadosEnCiudad(centro, s)  ) }
+				//La segunda restricción es para aclarar que solo le pueden llegar personas de su respectiva ciudad y que no se
+				//hayan vacunado todavía.
+		
+	Otras Operaciones: 
+		sacoN: nat n x conj(DNI) c -> conj(DNI) {n ≤ #c}
+		soloDNI: conj(persona) c x nat n -> conj(DNI)
+		frascosARepartir: ciudad x vacunas x salud -> nat
+		dosisARepartir: ciudad x vacunas x salud -> nat
+		
+		ciudadMasVacuno: salud -> ciudad 
+		ciudadMasVacunoDeCiudades: conj(ciudad) ciudades x salud s -> {ciudades ⊂= centros(s) ∧ ¬ Ø?(ciudades)}
+		
+		ciudadMasVacunas: salud -> ciudad 
+		ciudadMasVacunasDeCiudades: conj(ciudad) ciudades x salud s -> {ciudades ⊂= centros(s) ∧ ¬ Ø?(ciudades)}
+		
+	Axiomas: (∀ cs : conj(ciudad)) (∀ c,c1,c2 : ciudad) (∀ v,v1,v2 : vacunas ) (∀ pla : conj(persona) ) (∀ s : salud) 
+	(∀ dnis : conj(DNI)) (∀ n : nat)
+	
+		centros( iniciaVacunacion(cs) ) ≡ cs
+		centros(lleganVacunas(v, c, s)) ≡ centros(s)
+		centros(llegaPlanilla(c,pla, s)) ≡ centros(s)
+		
+
+		esperandoEnCiudad(c, iniciaVacunacion(cs) ) ≡ Ø
+		esperandoEnCiudad(c1, lleganVacunas(v, c2, s) ) ≡ if  c1=c2 then
+				SacoN (  frascosARepartir(c,v,s)*5 , esperandoEnCiudad(c1,s) )
+		else
+			esperandoEnCiudad(c1, s)
+		fi
+		esperandoEnCiudad(c1, llegaPlanilla(c2,pla, s)) ≡ if (c1 = c2 ∨ frascosEnCiudad(c1,s)*5 < #pla) then
+			esperandoEnCiudad(c1,s) ∪ SacoN( min( DividirPor5(#pla) , frascosEnCiudad(c1,s) )*5 , soloDNI(pla) )
+		else
+			esperandoEnCiudad(c1, s)
+		fi
+		
+		
+		frascosEnCiudad(c, iniciaVacunacion(cs)) ≡ 0
+		frascosEnCiudad(c1, lleganVacunas(v, c2, s) ) ≡ if c1=c2 then
+			frascosEnCiudad(c1,s) + (v -frascosARepartir(c,v,s) ) 
+		else
+			frascosEnCiudad(c1,s)
+		fi
+		frascosEnCiudad(c1, llegaPlanilla(c2,pla, s)) ≡ if c1=c2 then
+			 frascosEnCiudad(c1,s) - min( DividirPor5(#pla) , frascosEnCiudad(c1,s) )
+		else
+			frascosEnCiudad(c1,s)
+		fi
+		
+		vacunadosEnCiudad(c, iniciaVacunacion(cs)) ≡ Ø
+		vacunadosEnCiudad(c1, lleganVacunas(v, c2, s)) ≡ if c1=c2 then
+			vacunadosEnCiudad(c1,  s) ∪  dameN( frascosARepartir(c,v,s)*5 , esperandoEnCiudad(c1,s) )
+		else
+			vacunadosEnCiudad(c1,  s)
+		fi
+		vacunadosEnCiudad(c1, llegaPlanilla(c2,pla, s)) ≡ if c1=c2 then
+			vacunadosEnCiudad(c1,  s) ∪ dameN( min( DividirPor5(#pla) , frascosEnCiudad(c1,s) ) *5 , soloDNI(pla))
+		else
+			vacunadosEnCiudad(c1,  s)
+		fi
+		
+		frascosARepartir(c,v,s) ≡ min( DividirPor5(#esperandoEnCiudad(c,s)) , v )
+		
+		sacoN(n, c) ≡ if n=0 then
+			c
+		else
+			SacoN(n-1, sinUno(c) )
+		fi
+		
+		dameN(n, c) ≡ if n=0 then
+			Ø
+		else
+			Ag(dameUno(c), dameN(n-1, sinUno(c) ) )
+		fi
+		
+		soloDNI(c) ≡ if c=Ø then
+			Ø
+		else
+			Ag( π₁(dameUno(c)), soloDNI(sinUno(c)) )
+		fi
+		
+		ciudadMasVacuno(s) ≡ ciudadMasVacunoDeCiudades(centros(s), s )
+		
+		ciudadMasVacunoDeCiudades(cs, s) ≡ if #cs=1 then
+			dameUno(cs)
+		else
+			if #vacunadosEnCiudad(dameUno(cs), s) > #vacunadosEnCiudad( ciudadMasVacunoDeCiudades(sinUno(cs), s) )  then
+				dameUno(cs)
+			else
+				ciudadMasVacunoDeCiudades(sinUno(cs), s)
+			fi
+		fi
+		
+		ciudadMasVacunas(s) ≡ ciudadMasVacunasDeCiudades(centros(s), s )
+		
+		ciudadMasVacunasDeCiudades(cs, s) ≡ if #cs=1 then
+			dameUno(cs)
+		else
+			if #frascosEnCiudad(dameUno(cs), s) > #frascosEnCiudad( ciudadMasVacunasDeCiudades(sinUno(cs), s) )  then
+				dameUno(cs)
+			else
+				ciudadMasVacunasDeCiudades(sinUno(cs), s)
+			fi
+		fi
+		
+		...
+Fin TAD

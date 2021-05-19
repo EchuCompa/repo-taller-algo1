@@ -1,0 +1,65 @@
+Axiomas:
+
+•) Estructura
+altafiesta se representa con estr, donde
+estr es tupla
+	< invitados: conj(persona),
+	presentes: cola(persona),
+	grupoDe: dicc(grupo, conj(persona)),
+	regaloDeGrupo: dicc(grupo, regalo),
+	grupoMasNumeroso: grupo > 
+	grupo, persona y regalo son string
+	
+
+1- Presentes esta incluido dentro de invitados
+2- Las claves de ambos diccionarios son las mismas 
+3- La union de todos los grupos equivale a presente 
+4- grupoMasNumeroso tiene la mayor cantidad de personas y esta en las claves de GrupoDe
+5- Una persona no puede pertenecer a más de un grupo 
+
+•) Invariante de Representación
+    Rep^(e)    ⟶ boolean
+    Rep(e) ≡ true ⇐⇒ 
+		1) ( ColaAConj(presentes) C e.invitados) ∧ 
+		2)  claves(e.GrupoDe) = claves(e.regaloDeGrupo)
+		3)(∀p:persona)( p ∈ ColaAConj(e.presentes) ⇐⇒ (∃g:grupo)( def?(g, e.GrupoDe) ∧L p ∈ obtener(g, e.grupoDe))) ∧
+		4)	def?(e.grupoMasNumeroso, e.grupoDe)  ∧L 
+		(¬(∃g:grupo)( def?(g, e.GrupoDe) ∧L (#(obtener(g,e.grupoDe)) > #(obtener(e.grupoMasNumeroso, e.grupoDe)) ∨
+									(#(obtener(g,e.grupoDe)) = #(obtener(e.grupoMasNumeroso, e.grupoDe)) ∧ e.grupoMasNumeroso > g)))
+		5)  (∀g1,g2:grupo)( ( def?(g1, e.GrupoDe) ∧ def?(g2, e.GrupoDe) ∧ g1!=g2)
+					⇒L (obtener(g1,e.grupoDe) ∩ obtener(g2,e.grupoDe) = Ø) )
+
+
+		ColaAConj: cola -> conj
+		ColaAConj(encolar(a, c)) ≡ if vacía?(c) then
+				Ag(a, Ø)
+			else
+				Ag(a, ColaAConj(c))
+			fi
+
+•) Función de Abstracción
+    Abs: estr ⟶ altafiesta  {Rep(e)}
+    (∀ e : estr) Abs(e) =obs a: altafiesta / invitadosPendientes(a) =obs e.invitados - e.Presentes ∧
+		(∀r : regalo)( r ∈ regalos(a) ⇐⇒ (∃g:grupo)( def?(g, e.RegaloDeGrupo) ∧L r =obs obtener(g, e.RegaloDeGrupo) ∧
+		 obtener(g, e.grupoDe) =obs personasPorRegalo(a, r)   ) ) 
+		 ∧ e.grupoMasNumeroso =obs grupoMasNumeroso(a)
+		 
+•) Servicios exportados
+		llegaGrupo: no produce aliasing, modifica colateralmente el conjunto argumento y 
+		posee orden de complejidad temporal de O(1)
+
+•) Algoritmos
+    illegaGrupo(inout a:altafiesta, in grupo:string, in personas:conj(personas), in regalo:string) 
+				Definir(a.regaloDeGrupo, grupo, regalo) //(se rompe (3))
+				Definir(a.grupoDe, grupo, personas)	//(se arregla (3) y se rompe (2) y tal vez se rompe (7))
+				while haySiguiente(personas) do //while ¬Ø?(personas) do 
+					Encolar(a.presentes, Siguiente(personas)) //Encolar(a.presentes, dameUno(personas))
+					Avanzar(personas) //personas = sinUno(personas)
+				end while //(se arregla (2))
+				if 		(#personas > #Obtener(a.grupoMasNumeroso, a.grupoDe) ∨
+				 			(#personas = #Obtener(a.grupoMasNumeroso, a.grupoDe) ∧ grupo < a.grupoMasNumeroso))
+							{
+								a.grupoMasNumeroso <- grupo //(se arregla (7))
+							}
+					
+						

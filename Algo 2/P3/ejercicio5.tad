@@ -1,0 +1,48 @@
+Axiomas:
+
+•) Estructura
+banco se representa con estr, donde
+estr es tupla
+< entraron: conj(persona),
+fila: cola(persona),
+colados: conj(persona),
+atendidos: conjunto(persona) >
+
+Condiciones que se deben cumplir
+1- Atendidos, Fila y Colados están incluidos dentro de entraron
+2- Colados debe estar incluido en Fila
+3- Fila y Atendidos no deben tener ningún elemento en común 
+4- En la Fila no puede haber una persona dos veces 
+
+//Entiendo que una persona que entro en un día no vuelve a entrar
+
+•) Invariante de Representación
+    Rep^(e)    ⟶ boolean
+    Rep(e) ≡ true ⇐⇒ {ColaAConj(e.fila), e.colados, e.atendidos} C e.entraron ∧ e.colados C ColaAConj(e.fila)
+		∧ ColaAConj(e.fila) ∩ Atendidos = Ø ∧ 
+		(∄ i1,i2 : nat) ( 0 < i1,i2 < tamaño(e.fila) ∧ i1!=i2 ∧ iesimoElem(e.fila, i1) = iesimoElem(e.fila, i1)  )
+	
+
+ColaAConj: cola -> conj
+ColaAConj(encolar(a, c)) ≡ if vacía?(c) then
+		Ag(a, Ø)
+	else
+		Ag(a, ColaAConj(c))
+	fi
+
+iesimoElem: cola(a) x nat i -> conj {0 ≤ i < tamaño(cola) }
+iesimoElem(encolar(a,c), i) ≡ if i=0 then
+		a
+	else
+		iesimoElem(c, i-1)
+	fi
+
+•) Función de Abstracción
+    Abs: estr ⟶ banco {Rep(e)}
+    (∀ e : estr) Abs(e) =obs b: banco / fila(b) =obs e.fila ∧ atendidos(b) =obs e.atendidos 
+		∧ colados(b) = e.colados ∧ entraron(b) = e.entraron 
+
+//Conj fila -> Es el conj entraron - {conj atendidos  U conj retiraron }
+//Conj atendidos -> Son los que fueron atendidos, es sencillo
+//Conj colados -> Son los que se colaron y estan en el conj fila
+//Conj entraron -> Los que entraron 

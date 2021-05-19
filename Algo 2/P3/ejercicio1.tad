@@ -1,0 +1,92 @@
+
+Ejercicio 1:
+a)
+cacotada se representa con estr, donde
+estr es tupla
+<
+  inicio: nat,
+  fin: nat,
+  elem: array[0 . . . n] de nat
+>
+
+Observadores basicos y "pensar" (que tiene que cumplir)
+- La long de elem = capacidad
+- Inicio y fin estan entre 0 y n
+- El proximo de verCola = estr.elem[estr.inicio]
+- iesimoElem[i] de verCola =  estr.elem[ (estr.inicio + i) mod n]
+- Todas las casillas liberadas tienen un 0
+
+QUIERO QUE LO QUE ESTE ACA SEA VALIDO PARA CUALQUIER INSTANCIA DEL TAD, NO PARA UNA EN PARTICULAR
+
+Axiomas:
+	 
+Rep^(e)  → boolean
+
+Rep(e) ≡ true ↔ ( 0 ≤ e.inicio, e.fin < tam(e.elem) ∧L
+		(∀ i : Nat)( ( ( e.fin ≤ e.inicio ∧   e.fin < i < e.inicio) ∨ (i< e.inicio ∧ i < fin ∧  e.fin ≥ e.inicio)   )
+	⇒L e.elem[i]=0)  ) 
+
+
+
+QUIERO QUE MI ESTRUCTURA ESTE REPRESENTANDO CORRECTAMENTE A LA INSTANCIA DEL TADD QUE DEVUELVO
+
+
+Abs: estr → cacotada  {Rep(e)}
+(∀ e : estr) Abs(e) =obs c: cacotada |
+(tam(e.elem) = capacidad(c)+1) ∧ ( 0 ≤ e.inicio <= capacidad(c) ∧
+( (e.inicio + tamaño(verCola(c))-1) mod capacidad(c)) = e.fin)) ∧L
+(∀ i : Nat)(0 ≤ i ≤ tamaño(verCola(c)) ⇒ iesimoElem(verCola(c)) = e.elem[ (e.inicio + i) mod capacidad(e)]))
+
+cantEncolados(e) =	if fin > inicio
+					then fin - inicio + 1
+					else tam(e.elem) - (inicio - fin) + 1
+					fi
+
+iesimoElem: cola c × nat i → nat {0 ≤ i < tamaño(c)}
+iesimoElem (c) = 	if i = 0
+					then proximo(c)
+					else iesimoElem(desencolar(c), i-1)
+					fi
+
+b)
+Servicios exportados:
+	verCola: 	No produce aliasing ni efectos colaterales sobre los argumentos, posee orden de complejidad temporal O(n) con n siendo la capacidad
+	capacidad: 	No produce aliasing ni efectos colaterales sobre los argumentos, posee orden de complejidad temporal O(1)
+	vacia: 		No produce aliasing, ni efectos colaterales sobre los argumentos, posee orden de complejidad temporal O(1)
+	encolar: 	No produce aliasing, modifica colateralmente el conjunto argumento, posee orden de complejidad temporal O(1)
+
+verCola(in cacotada ca) → res: cola
+{true}
+{tamaño(res^) =obs capacidad(ca^) ∧
+ (∀ i : Nat)(0 ≤ i ≤ cantEncolados(ca^) ⇒ ca^.elem[ca^.inicio + i mod capacidad(ca^)]= iesimoElem(res^,i))
+}
+
+capacidad(in cacotada ca) → res: nat
+{true}
+{res^ =obs tam(ca^.elem)}
+
+vacia(in nat n) → res: cacotada
+{true}
+{capacidad(res) = n ∧ (∀ i : nat)(0 ≤ i < n ⇒ res.elem[i]=0)}
+
+encolar(in nat n, in/out cacotada ca)
+{ca= ca0 ∧L ca0.tamaño < capacidad(ca0)}
+{if cantEncolados(ca)>=1 then ca.inicio=ca0.inicio else ca.inicio = 0 fi ∧ ca.fin = (ca0.fin + 1) mod capacidad(ca) ∧ (∀ i : nat)(0 ≤ i < capacidad(ca) ∧ i ≠ ca.fin ⇒ ca.elem[i] = ca0.elem[i]) ∧ ca.elem[ca.fin] = n}
+
+
+iVerCola(in c:cacotada, out k: cola)
+{C^ =obs Co ∧ Rep(c)}
+if(c.fin > c.inicio) then k0=colaDeFinAInicio(c) else k0=colaDeInicioAFin(c)
+{k=k0}
+
+icapacidad(in c:cacotada, out n:nat)
+{Rep(c)}
+{n=tam(c^.elem)}
+
+ivacia(in nat:n, out c:cacotada) //COMO HAGO ESTO
+{true}
+eleme.elem -> vacio
+{c.elem = crearArrayConNElementosEn0(n)}
+
+iencolar(in nat n, in/out cacotada ca)
+Fin TAD

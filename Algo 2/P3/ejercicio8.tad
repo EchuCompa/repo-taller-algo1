@@ -1,0 +1,74 @@
+Axiomas:
+
+•) Estructura
+estr es tupla
+	< catPrioritarias: conj(categoria),
+	tramites: dicc(id, categoria),
+	tramites×Cat: dicc(categoria, conj(id)),
+	pendPrioritarios: secu(id),
+	pendientes: secu(id) >
+
+•) Invariante de Representación
+    1) CatPrioritarias esta incluido dentro de todas las categorias de tramites y las claves de tramites 
+		son  iguales a las categorias de tramitesXCat
+		2) Los id de tramites deben ser iguales a todos los id de tramitesXCat y a pendientes 
+		3) No puede haber un id repetido en los conjuntos de tramitesXCat 
+		4) No hay id repetidas en pendPrioritarios o en pendientes 
+		5) En  pendPrioritarios todos tienen que tener como categoria alguna que pertenezca a catPrioritarias
+		
+		Rep^(e)    ⟶ boolean
+    Rep(e) ≡ true ⇐⇒ 
+		1) e.catPrioritarias C claves(tramitesXCat) ∧ 
+		(∀ cat : categoria) ( def?(cat, tramitesXCat) ⇐⇒ (∃ i : id) ( def?(id, e.tramites) ∧L obtener(id, e.tramites) =obs cat  ) )
+		2) claves(e.tramites) = SecuAConj(pendientes) ∧
+		(∀ i : id) ( i ∈ SecuAConj(e.pendientes) ⇐⇒ (∃ cat : categoria) (def?(cat, e.tramitesXCat) ∧L i ∈ obtener(cat, e.tramitesXCat)) )
+		3) ( ∃ cat1, cat2 : categoria) ( ( def?(cat1, e.tramitesXCat) ∧ def?(cat2, e.tramitesXCat) ∧ 
+		obtener(cat1, e.tramitesXCat) ∩ obtener(cat2, e.tramitesXCat) != Ø  ) )
+		4) #(SecuAConj(e.pendPrioritarios)) = long(e.pendPrioritarios) ∧ #(SecuAConj(e.pendientes)) = long(e.pendientes)
+		5) (∀i: id)( está?(e.pendPrioritarios) ⇒L (∃c:categoria)(c ∈ e.catPrioritarias ∧L 
+																							obtener(i,e.tramites) = c)))
+		
+		
+		SecuAConj: secu -> conj
+		SecuAConj(e • s) ≡ if vacía?(s) then
+				Ag(e, Ø)
+			else
+				Ag(e, SecuAConj(s))
+			fi
+
+			< catPrioritarias: conj(categoria),
+			tramites: dicc(id, categoria),
+			tramites×Cat: dicc(categoria, conj(id)),
+			pendPrioritarios: secu(id),
+			pendientes: secu(id) >
+
+•) Función de Abstracción
+    Abs: estr ⟶ oficina {Rep(e)}
+    (∀ e : estr) Abs(e) =obs o: oficina / 
+						categorias(o) = claves(e.tramitesxCat) ∧
+						pendientes(o) = e.pendientes ∧
+						prioritarias(o) = e.catPrioritarias ∧
+						(∀i:id)(i ∈ pendientes(o) ⇒L catTram(i,o) = e.tramites(i))
+
+
+•) Servicios exportados
+    si/no produce aliasing
+    no produce efectos colaterales sobre los argumentos/modifica colateralmente el conjunto argumento
+    posee orden de complejidad temporal de O(x)
+
+•) Interfaces
+    funcion(in tipo: t) -> res: tipo
+    {true} //PRE
+    {res^ =obs p.palabra} //POST
+
+    funcion2(in/out tipo: t)
+    {true} //PRE
+    {res^ =obs p.palabra} //POST
+
+•) Algoritmos
+    ifuncion(in nat:n, inout t:tipo) //un ejemplo tontox
+        {Rep(t) ∧ t=t0}
+        t0[fin] = n
+        {t0=cambiarUltimo(t0, n) ∧ Rep(t)}
+        t0...
+        {t=t0}

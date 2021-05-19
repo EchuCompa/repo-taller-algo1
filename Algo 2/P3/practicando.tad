@@ -1,0 +1,41 @@
+Axiomas:
+
+•) Estructura
+salud se representa con puntero(estr), donde
+estr es tupla<
+			data: dicc(ciudad, tupla < ⟨vacunados : conj(persona), pendientes conj(persona), dosis: nat⟩ >), 
+      masVacuno: ciudad,
+      masDisponibles: ciudad ⟩ 
+
+
+•) Invariante de Representación
+	
+		1) Mas Vacuno y Mas Disponibles pertenecen a las claves de data 
+		// 2) Para todas las ciudades de data la interseccion de vacunados y pendientes es vacia //Se lo comio el 6
+		3) Para todas las ciudades no puede haber más de 5 personas pendientes si hay una dosis 
+		4) Mas vacuno es realmente el que más vacuno (A.K.A es posta)
+		5) Rt para Mas Disponibles 
+		6) La interseccion de todos los conjuntos vacunados y pendientes, sin importar la ciudad, debe ser vacía.
+	
+    Rep^(e)    ⟶ boolean
+    Rep(e) ≡ true ⇐⇒ 
+		1) ( def?(e.masVacuno, e.data) ∧  def?(e.masDisponibles, e.data) ) ∧L
+		2) (∀c:ciudad)( def?(c, e.data) ⇒L π1(obtener(c,e.data)) ∩ π2(obtener(c,e.data)) = Ø)
+		3) (∀ c : ciudad) ( def?(c, e.data) ⇒L ((obtener(c,e.data).dosis > 0) ⇒L ( #(obtener(c,e.data).pendientes) <5 )) )
+		4) (∀c :ciudad) ( def?(c, e.data) ⇒L #(obtener(c, e.data).vacunados) <= #(obtener(e.masVacuno, e.data).vacunados) )
+		5) (∀ c :ciudad) ( def?(c, e.data) ⇒L #(obtener(c, e.data).pendientes) <= #(obtener(e.masDisponibles, e.data).pendientes) )
+		6) (∄ c1,c2 : ciudad ) ( (def?(c1, e.data) ∧ def?(c2, e.data) ∧ c1 != c2) ⇒L 
+			 (  ( obtener(c1, e.data).vacunados ∩ obtener(c2, e.data).pendientes != Ø) ∨  
+					( obtener(c1, e.data).pendientes ∩ obtener(c2, e.data).pendientes != Ø) ∨
+					( obtener(c1, e.data).vacunados ∩ obtener(c2, e.data).vacunados != Ø)
+				) )
+		
+
+
+•) Función de Abstracción
+    Abs: estr ⟶ salud {Rep(e)}
+    (∀ e : estr) Abs(e) =obs s: salud / 
+		ciudades(s) = claves(e.data) ∧L (
+		(∀ c : ciudad) ( def(c, e.data) ⇒L (obtener(c,e.data).dosis) =obs dosis(s, c) ) ∧
+		(∀ c : ciudad) ( def(c, e.data) ⇒L (obtener(c,e.data).pendientes) =obs pendientes(s, c) ) ∧
+		(∀ c : ciudad) ( def(c, e.data) ⇒L (obtener(c,e.data).vacunados) =obs vacunados(s, c) ) )

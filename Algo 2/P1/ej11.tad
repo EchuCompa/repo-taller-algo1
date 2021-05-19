@@ -1,0 +1,133 @@
+RegistrarProducto :  Registrar un nuevo producto con su stock mınimo (un natural).
+
+ComprasProducto : Indica la cantidad de elementos comprados del producto
+VentasProducto: Indica la cantidad de elementos vendidos del producto
+ProductoSustituto : Permitir que sea informado un producto sustituto para otro dado
+ProductosEnPeligro: Devolver el conjunto de todos los productos con stock debajo del mınimo que no tengan sustituto, o bien
+tales que el total del stock del producto mas el de su sustituto este por debajo del mınimo.
+
+
+
+TAD PRODUCTO es STRING
+TAD MONTO es NAT
+TAD OPERACION es BOOL //True =Comprar, False = Vender
+TAD OPERACION es TUPLA(Producto, Operacion, Monto)
+
+TAD STOCK
+	Igualdad Observacional:
+	(∀ s1, s2: stock) ( s1 =_obs s2 ↔ 
+		(( ∀ p1,p2: producto) ( ))
+		)
+	
+	Generos: stock
+	Exporta: stock, observadores, generadores,
+	Usa: Bool, Nat
+	
+	Observadores Basicos:
+		Registrado?: producto p x stock -> bool
+		stockMinProducto: producto p x stock s -> nat {Registrado?(p,s)}
+		esSustituto: producto p1,p2 x stock s -> nat {Registrado?(p1,s) ∧  Registrado?(p2,s)}
+		//Informa si p1 es sustito de p2
+		historialOperaciones: stock -> secu(operacion)
+		 
+		 
+		 
+	Generadores:
+		generarStock: -> stock
+		RegistrarProducto: producto p x nat x  stock -> stock
+		InformarSustituto: producto p1,p2 x stock s -> stock
+		Comprar: producto p x nat x stock s → stock {Registrado?(p,s)}
+		Vender:  producto p x nat n x stock s  → stock {Registrado?(p,s) ∧ stockProducto(p, s) ≥ n}
+		
+		
+	Otras Operaciones:
+		stockProducto: producto p x stock s -> nat {Registrado?(p,s)} //Si ya tengo el historial entonces esto
+		//no es un observador básico ya que es deducible a partir de las operaciones.
+		ProductosEnPeligro: conjunto(producto) x stock -> conjunto(producto)
+		ProductosEnPeligro_v2: stock -> conjunto(producto)
+		productos: stock -> conjunto(producto)
+		StockConSustitutos: producto p x stock s -> nat {Registrado?(p,s)}
+		//Devuelve el stock del producto + el de sus sustitutos
+		
+	Axiomas: (∀ p1,p2,p3,p4 : producto) (∀ s : stock) (∀ n,n2 : nat)
+			Registrado(p1, generarStock() ) ≡ false
+			Registrado(p1, RegistrarProducto(p2,n, s)) ≡ (p1=p2) ∨ Registrado(p1,s)
+			Registrado(p1, InformarSustituto(p2,p3,s)) = Registrado(p1,s)
+			Registrado( p1, Comprar(p2, n, s)  ) = Registrado(p1,s)
+			Registrado( p1, Vender(p2, n, s)  ) = Registrado(p1,s)
+			
+			stockMinProducto(p1, RegistrarProducto(p2,n, s)) = if p1=p2 then
+				n 
+			else
+				stockMinProducto(p1, s)
+			fi
+			stockMinProducto(p1,InformarSustituto(p2,p3,s) ) = stockMinProducto(p1, s)
+			stockMinProducto( p1, Comprar(p2, n, s)) = stockMinProducto(p1, s)
+			stockMinProducto( p1, Vender(p2, n, s)) = stockMinProducto(p1, s)
+			
+		
+	
+			esSustituto(p1,p2, RegistrarProducto(p3,n, s)) = (p1=p2)  ∨ ( (p2 != p3) ∧ esSustituto(p1,p2, s) )
+			esSustituto(p1,p2, InformarSustituto(p3,p4,s)) ≡ if (p1 =p3 ∧ p2=p4) then
+				true
+			else
+				esSustituto(p1,p2, s)
+			fi
+			esSustituto(p1,p2, Comprar(p3, n, s)) = esSustituto(p1,p2, s)
+			esSustituto(p1,p2, Vender(p3, n, s)) = esSustituto(p1,p2, s)
+			
+
+			historialOperaciones(generarStock() ) ≡ <>
+			historialOperaciones(RegistrarProducto(p,n, s)) ≡ historialOperaciones(s)
+			historialOperaciones(InformarSustituto(p1,p2,s)) = historialOperaciones(s)
+			historialOperaciones(Comprar(p1, n, s)  ) = <p,true, n> • historialOperaciones(s)
+			historialOperaciones( Vender(p1, n, s)  ) = <p,false, n> • historialOperaciones(s)
+			
+			stockProducto(p1, RegistrarProducto(p2,n, s) ) = if p1=p2 then
+				0 // //Acá digo que cuándo se registra un producto su stock inicial es 0, no n. Inicial != Mínimo
+			else
+				stockMinProducto(p1, s)
+			fi
+			stockProducto(p1,InformarSustituto(p2,p3,s)) = stockProducto(p1, s)
+			stockProducto(p1, Comprar(p2, n, s)) = if p1=p2 then
+				n 
+			else
+				0
+			fi  + stockProducto(p1, s)
+			stockProducto(p1, Vender(p2, n, s)) = if p1=p2 then
+				- n 
+			else
+				0
+			fi  + stockProducto(p1, s)
+		
+			productos(generarStock() ) ≡ Ø
+			productos(RegistrarProducto(p,n, s)) ≡ Ag(p1, productos(s))
+			productos(InformarSustituto(p1,p2,s)) = productos(s)
+			productos(Comprar(p2, n, s)  ) = productos(s)
+			productos( Vender(p2, n, s)  ) = productos(s)
+			
+			ProductosEnPeligro_v2(s) ≡ ProductosEnPeligro(productos(s),s)
+			
+			ProductosEnPeligro(produs ,s) ≡ if produs= Ø then
+				Ø
+			else
+				if (StockConSustitutos(dameUno(produs),s) < stockMinProducto(dameUno(produs),s)) then
+					Ag(dameUno(produs), ProductosEnPeligro(sinUno(produs), s) )
+				else
+					ProductosEnPeligro(sinUno(produs), s)
+				fi
+			fi 
+			
+			
+			StockConSustitutos(p1, s, produs) ≡ if produs = Ø then
+				0
+			else
+				if esSustituto(dameUno(produs), p1) then
+					stockProducto(dameUno(produs),s) + StockConSustitutos(p1, s, sinUno(produs) )
+				else
+					StockConSustitutos(p1, s, sinUno(produs) )
+				fi
+
+
+
+Fin TAD

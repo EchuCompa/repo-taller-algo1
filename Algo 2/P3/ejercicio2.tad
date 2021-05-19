@@ -1,0 +1,72 @@
+estr es tupla
+<grado: nat,
+coef : array[0 . . . n] de nat>
+
+//Yo lo interpreto que n es la cota "máxima" del grado de los polinomios, por lo tanto no
+// necesariamente se cumple que grado+1 = tam.coef 
+
+Axiomas:
+
+Rep(e)  ⟶ boolean
+
+Rep(e) ≡ true ↔ (0 ≤ e.grado ≤ tam(e.coef)) ∧
+//Solo tiene definidas las operaciones para coeficientes pertenecientes a nat, según la P1
+(∀ i : nat) (0 ≤ i ≤ tam(e.coef) ⇒L e.coef[i] ≥ 0 ∧ (i > e.grado ⇒ e.coef[i] = 0) )
+
+
+Abs: estr ⟶ polinomio  {Rep(e)}
+(∀ e : estr) Abs(e) =obs p: polinomio|
+(∀ n : nat) (evaluar(p, n ) ≡obs ∑_(i=0)^(e.grado) (e.coef[i]*n^i) )
+
+
+"Servicios exportados":
+						
+--------------------------------
+Interfaz
+--------------------------------
+
+Evaluar: no produce aliasing ni efectos colaterales sobre los argumentos, posee orden de complejidad temporal
+				 de O(n) con n siendo el grado+1		
+Cte: no produce aliasing ni efectos colaterales sobre los argumentos, posee orden de complejidad temporal de O(1) 
+X: no produce aliasing, posee orden de complejidad temporal de O(1)
++: no produce aliasing, modifica colateralmente el conjunto argumento, posee orden de complejidad temporal de O(max(n,m))siendo n el grado+1 del primero y m del segundo 
+*: no produce aliasing, modifica colateralmente el conjunto argumento, posee orden de complejidad temporal de O(max(n,m))siendo n el grado+1 del primero y m del segundo 
+
+Interfaz
+Evaluar(in polinomio p, in nat n) -> res: nat 
+{true}//{tam(p.coef) =obs p.grado+1}??
+{res^ =obs ∑_(i=0)^(p.grado) (p.coef[i]*n^i) } 			
+
+Cte(in nat n) -> res:polinomio 
+{true}
+{res.grado=0 ∧ res.coef[0]=n  (∀ i : nat) (1 ≤ i ≤ tam(res.coef) ⇒L e.coef[i] = 0}
+
+x(out polinomio p)
+{true}
+{p.grado = 1 ∧ p[1]=1 ∧ (∀i:nat)( (0 ≤ i < tam(p0.coef)  ∧ i !=1) ⇒L p.coef[i]=0 )}
+
++(in/out polinomio p, in polinomio p2)
+{p=p0}
+{(p.grado=max(p0.grado, p2.grado)	∧L 
+	(∀i:nat)(0 ≤ i < p.grado ⇒L p.coef[i] = p0.coef[i]+ p2.coef[i]  )
+}
+
+*(in/out polinomio p, in polinomio p2)
+{p=p0}
+{ p.grado=p0.grado+p2.grado	∧ 
+	(∀i:nat)(0 ≤ i ≤ p.grado) ⇒ 
+		p[i] =	 ∑_(j=0)^(p0.grado) (∑_(k=0)^(p2.grado) if (k+j= i) then p0.coef[j]* p2.coef[k] else 0 fi )											
+									//una sumatoria rara lpm que paja
+}
+
+
+Algoritmos
+iEvaluar(in p:polinomio, in n:nat, out res: nat)
+{Res(p)}
+{res=sumatoriaDe(0 al p.grado)(i=0)(pow(n,i)*p.coef[i])}
+
+
+
+
+Fin TAD
+	

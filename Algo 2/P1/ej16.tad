@@ -1,0 +1,93 @@
+//Cosas ya definidas según la consigna
+TAD Posicion
+TAD Direccion 
+TAD Tablero
+
+TAD Tablero(Extracto)
+	generos: tablero
+	generadores
+		nuevo : −→ tablero
+	otras operaciones
+		siguiente : posicion p × direccion × tablero t −→ posicion {posicionValida(p, t)}
+		//Asumo que esto contempla que el movimiento que puede tener el jugador es cómo si
+		//el tablero fuera un toroide
+		posicionValida : posicion × tablero −→ bool
+	Axiomas: //No hace falta (según Fedi)
+		
+	Fin TAD
+//
+
+TAD JUGADOR es Tupla(Posicion, Direccion)
+
+TAD BATALLA
+	Igualdad Observacional:();
+	Géneros: batalla
+	Exporta: batalla, observadores, generadores, 
+	Usa: Bool, Nat, Conjunto, Posicion, Direccion, Tablero, Jugador
+	
+	Observadores Básicos:
+		tablero:	batalla -> tablero
+		jugadoresActuales: batalla -> conj(jugador)
+		puntajeJugador: jugador j x batalla b -> nat {j ∈ jugadoresActuales(b)}
+		
+	Generadores:
+		iniciaBatalla:	conj(jugador) jugadores x tablero t-> batalla { #jugadores = 64 ∧ 
+			(∀ j1,j2 : jugador) (j1,j2 ∈ jugadores ⇒L posicionValida(π₁(j1) , t) ∧ π₁(j1)!=π₁(j2) )
+		}
+		juegaTurno: jugador j x nat accion x direccion x batalla b -> batalla {j ∈ jugadoresActuales(b) ∧ 0 ≤ accion ≤ 1
+		∧ (∀j : jugador) (j ∈ jugadoresActuales(b) ⇒L puntajeJugador(j)≤ 32)}
+			//La acción 0 -> avanzar y 1 -> cambiar de dirección
+			//Otra forma mas linda de pensarlo es solo ingresar la dirección y si la dirección es distinta entonces ahí 
+			// hace un cambio de dirección, si es igual entonces avanza una oposición 
+		
+	Otras Operaciones:
+		hayJugadorMismaPosi: posicion x conj(jugador) -> bool
+		jugadorMismaPosi: posicion p x conj(jugador) js -> jugador {hayJugadorMismaPosi(p,js)}
+		eliminarJugadorMismaPosi: posicion x conj(jugador) -> conj(jugador) {hayJugadorMismaPosi(p,js)}
+		
+		
+	Axiomas: (∀ js: conj(jugador)) (∀j,j1,j2 : jugador) (∀ b : batalla) (∀ d : direccion) (∀ t : tablero) (∀ a : accion)
+		tablero(iniciaBatalla(js, t)) ≡ t
+		tablero(juegaTurno(j,a,d,b)) ≡ tablero(b)
+		
+		jugadoresActuales(iniciaBatalla(js, t)) ≡ js
+		jugadoresActuales(juegaTurno(j,0,d,b)) ≡ (jugadoresActuales(b) - {j} ) ∪ Ag(< π₁ ,dir> , Ø) 
+		//Actualizo la nueva dirección del jugador
+		jugadoresActuales(juegaTurno(j,1,d,b)) ≡ ( if hayJugadorMismaPosi(siguiente(π₁(j),d,tablero(b)), jugadoresActuales(b) ) then
+			( (eliminarJugadorMismaPosi(siguiente(π₁(j),d,tablero(b)), jugadoresActuales(b)) )
+		else
+			jugadoresActuales(b)
+		fi ) - {j} ) ∪ Ag(<siguiente(π₁(j),d,tablero(b)) ,π₂(j)> , Ø) 
+		//Actualizo la nueva posición del jugador
+		
+		puntajeJugador(j, iniciaBatalla(js,t) ) ≡ 0 
+		puntajeJugador(juegaTurno(j,0,d,b)) ≡ puntajeJugador(j,b)
+		puntajeJugador(juegaTurno(j,1,d,b)) ≡ if hayJugadorMismaPosi(siguiente(π₁(j),d,tablero(b)), jugadoresActuales(b) )  then
+			puntajeJugador(j,b)+ 1 + puntajeJugador(jugadorMismaPosi(j,jugadoresActuales(b)), b)
+		else
+			puntajeJugador(j,b)
+		fi
+		
+		hayJugadorMismaPosi(p, js) ≡ if js = Ø then
+			false
+		else
+			( π₁(dameUno(js)) = p ) ∨ hayJugadorMismaPosi(p, sinUno(js))
+		fi
+		
+		jugadorMismaPosi(p,js) ≡ if π₁(dameUno(js)) = p then
+			dameUno(js)
+		else
+			jugadorMismaPosi(p, sinUno(js))
+		fi
+		
+		eliminarJugadorMismaPosi(p, js) ≡ if js=Ø  then
+			Ø
+		else
+			if π₁(dameUno(js)) = p then
+				sinUno(js)
+			else
+				Ag(dameUno(js), eliminarJugadorMismaPosi(p, sinUno(js)))
+			fi
+		fi
+		...
+Fin TAD

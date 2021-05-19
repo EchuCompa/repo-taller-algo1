@@ -1,0 +1,68 @@
+TAD ALUMNO es STRING
+TAD FILAB es SECUENCIA(ALUMNO)
+
+TAD PARCIAL
+	Igualdad Observacional:(
+		(∀ p1, p2: parcial) ( (p1 =obs p2 ) ⇐⇒ (filaBaño()))
+		);
+	Géneros: parcial
+	Exporta: nombreTad, observadores, generadores, 
+	Usa: Bool, Nat, Secuencia, Conjunto
+	
+	Observadores Básicos:
+		filaBaño: parcial -> filaB
+		hayAlumnosEnBaño:	parcial -> bool
+		//Se podría eliminar este observador y hacer que "alumnosEnBaño" devuelva el conjunto vacío y que 
+		// eso sea equivalente a este observador
+		alumnosEnBaño: parcial p -> conj(alumno) {hayAlumnosEnBaño(p)}
+		CantVecesAlumno: alumno x parcial -> nat
+		//Cantidad de veces que un alumno fue al baño
+		
+	Generadores:
+		iniciaParcial:			-> parcial
+		pideIrAlBaño: alumno a x parcial p -> parcial {CantVecesAlumno(a,p) < 3}
+		salenDelBaño: parcial -> parcial {hayAlumnosEnBaño(p)}
+		
+	Otras Operaciones:
+		retirarse: alumno x parcial -> parcial
+		//Volver a sentarse
+		filaBAConjunto: fila -> conjunto 
+		
+	Axiomas: (∀ a,a1,a2 : alumno) (∀ p : parcial)
+		
+		filaBaño(iniciaParcial()) ≡ <>
+		filaBaño(pideIrAlBaño(a, p)) ≡ if long(fila(p)) > 0 then
+			a • filaBaño(p)
+		else
+			<>
+		fi
+		filaBaño(salenDelBaño(p)) ≡ if long(fila(p)) ≥ 5 then
+			<> //Se van todos con el profesor
+		else
+			fin(filaBaño(p))
+		fi
+		
+		hayAlumnosEnBaño(iniciaParcial()) ≡ false
+		hayAlumnosEnBaño(pideIrAlBaño(a, p)) ≡ true
+		hayAlumnosEnBaño(salenDelBaño(p)) ≡  long(fila(p)) > 0
+		
+		filaBAConjunto(Ø) ≡ Ø
+		filaBAConjunto(x • s) ≡ Ag(x, filaBAConjunto(s) )  
+		
+		alumnosEnBaño(pideIrAlBaño(a, p)) ≡ if ¬hayAlumnosEnBaño(p) then
+			Ag(a, Ø)
+		else
+			alumnosEnBaño(p)
+		fi
+		alumnosEnBaño(salenDelBaño(p)) ≡ if long(filaBaño(p)) ≥ 5 then
+			filaBAConjunto(filaBaño(p))
+		else
+			Ag(prim(filaBaño(p)), Ø)
+		fi
+		
+		CantVecesAlumno(a, iniciaParcial()) ≡ 0
+		CantVecesAlumno(a, pideIrAlBaño(a,p)) ≡ CantVecesAlumno(a, p)
+		CantVecesAlumno(a, salenDelBaño(p) ) ≡ β(a ∈ alumnosEnBaño(p)) + CantVecesAlumno(a, p)
+	
+		...
+Fin TAD

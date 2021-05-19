@@ -1,0 +1,56 @@
+Axiomas:
+
+a) 
+Rep^(e)  ⟶ boolean
+Rep(e) ≡ true ⇐⇒
+ 									long(e.palabra) = e.long ∧
+									(∀i: nat)(0 ≤ i ≤ e.long ⇒L e.palabra[i] =obs e.palabra[e.long - 1 - i])
+
+
+Abs: estr ⟶ palindromo {Rep(e)}
+(∀ e : estr) Abs(e) =obs p: palindromo | longitud(ver(p)) = e.long ∧L
+																				(∀i: nat)(0 ≤ i ≤ e.long ⇒L ver(p)[i] =obs e.palabra[i] ) ∧
+																				
+			
+			
+			
+																							
+ver: no produce aliasing ni efectos colaterales sobre los argumentos, posee orden de complejidad temporal
+de O(n) con n siendo el long del palindromo
+ 
+medio: no produce aliasing ni efectos colaterales sobre los argumentos, posee orden de complejidad temporal de O(1)
+medioDoble: no produce aliasing ni efectos colaterales sobre los argumentos, posee orden de complejidad temporal de O(1)
+agregar: no produce aliasing modifica colateralmente el conjunto argumento, posee orden de complejidad temporal de O(n)
+
+Interfaz
+ver(in palindromo p) -> res: secu(α) 
+{true}
+{res^ =obs p.palabra} 		
+
+medio(in α:a) -> res:	palindromo
+{true}
+{res.long=1 ∧ res.palabra[0]=a}
+
+medioDoble(in α:a) -> res:	palindromo
+{true}
+{res.long=2 ∧ res.palabra[0]=a ∧ res.palabra[1]=a}
+
+agregar(in α:a, in/out palindromo: p)
+{p0=p}
+{p.long=p0.long+2 ∧ p.palabra =a • (p0 ◦ a)}
+//Segunda opción
+p.palabra[0]=a ∧ p.palabra[p.long-1]= a ∧ 
+(∀ i : nat) (1 ≤ i < p.long-1 ⇒L p[i] = p0[i] )
+
+
+Algoritmos:
+		
+iver(in p:palindromo, out res: secu(α))
+{Rep(p)}
+{res = p.palabra}
+ 
+ //c) Cambiaria que e.long = longitud(e.palabra)*2 ∨ e.long = longitud(e.palabra)*2-1 para la Rep(e) puesto que a través de 
+ // long uno puede diferenciar palindromos de tamaños pares o impares. 												
+
+//y para la función de abstracción modificar (∀i: nat)(0 ≤ i ≤ long(e.palabra) ⇒L (ver(p)[i] =obs e.palabra[i] ∧ 
+ //																																						ver(p)[long-1-i] =obs e.palabra[i] ) )

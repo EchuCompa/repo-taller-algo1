@@ -1,0 +1,149 @@
+TAD persona es NAT
+
+TAD FILA
+	Igualdad Observacional:
+		(∀ f1,f2 : fila) ( f1 =_obs f2 ↔ ( 
+		  (∀ p : persona) ( Esperando(n,f1) = Esperando(p,f2) ∧L 
+			(Esperando(p,f1) →L (Posicion(p,f1) = Posicion(p,f2) ∧ seColo?(p,f1) = seColo?(p, f2) )  )  
+		  ) ) )
+	Generos: fila
+	Exporta: fila, observadores, generadores, atender
+	Usa: Bool, Nat
+	
+	Observadores Basicos:
+		Esperando : persona × fila −→ bool
+		Posicion : persona p × fila f −→ nat {Esperando(p, f)}		
+		SeColo? : persona p × fila f −→ bool {Esperando(p, f)}
+	Generadores:
+		AbrirVentanilla : −→ fila
+		Llegar : persona p × fila f −→ fila {¬Esperando(p, f)}
+		
+		ColarseAdelanteDe : persona p × persona q × fila f −→ fila {¬Esperando(p, f) ∧ Esperando(q, f)}
+
+	Otras Operaciones:
+		Atender : fila f −→ fila {¬Vacia(f)}
+		Retirarse : persona p × fila f −→ fila {Esperando(p, f)}
+		Longitud : fila −→ nat
+		Vacıa : fila −→ bool	
+
+	Axiomas: (∀ p1,p2,p3 : persona) (∀ f: fila)
+	
+	---------------------------a----------------------------------------------------
+		Vacia(AbrirVentanilla() ) ≡ true
+		Vacia( Llegar(p1, f) ) ≡ false
+		Vacia(ColarseAdelanteDe(p1,p2, f) ) ≡ false
+		
+		Esperando( p1, AbrirVentanilla() )  = false
+		Esperando (p1, Llegar(p2, f) ) ≡ p1 = p2 ∨ Esperando(p1, f)
+		
+		Posicion(p1, Llegar(p2, f) ) ≡ if p1=p2 ∧ f=AbrirVentanilla() then
+			1		
+		else
+			1+ Posicion(p1, f)
+		fi
+		
+		Longitud( AbrirVentanilla() ) ≡ 0
+		Longitud (Llegar(p1,f) ) = 1 + Longitud(f)	
+		
+		Atender ( Llegar(p1, f ) ) ≡ if Vacia(f) then
+			f
+		else
+			 Llegar(p1, Atender(f) )
+		fi
+		
+		Retirarse ( p1, Llegar(p2, f ) ) ≡ if p1=p2 then
+			f
+		else
+			 Llegar(p2, Retirarse(p1, f) )
+		fi
+		
+		seColo?(p1, ColarseAdelanteDe(p2, p3, f)) ≡ (p1=p2) ∨ seColo(p1, f)
+		seColo?(p1, Llegar(p2, f) ) ≡ p1 != p2 ∧ seColo(p1, f) 
+		
+		
+		...
+Fin TAD
+
+
+Se necesita agregar Atender y ColarseAdelanteDe a los Generadores , ergo cambiar todo
+------------c--------------------------------
+
+TAD persona es NAT
+
+TAD FILA
+	Igualdad Observacional:
+		(∀ f1,f2 : fila) ( f1 =_obs f2 ↔ 
+			( 
+				(
+					Vacia(f1) = Vacia(f2) ∧ Longitud(f1) = Longitud(f2) ∧L
+				  (∀ p : persona) ( Esperando(n,f1) = Esperando(p,f2) ∧L 
+					(Esperando(p,f1) →L Posicion(p,f1) = Posicion(p,f2) ∧ seColo?(p,f1) = seColo?(p, f2) ) 
+					∧ Entro(p,f1) = Entro(p,f2) ∧ FueAtendido(p,f1) = FueAtendido(p,f2)) 
+				)
+	  	) 
+		) 
+	Generos: fila
+	Exporta: fila, observadores, generadores, atender
+	Usa: Bool, Nat
+	
+	Observadores Basicos:
+		Esperando : persona × fila −→ bool
+		Posicion : persona p × fila f −→ nat {Esperando(p, f)}
+		SeColo? : persona p × fila f −→ bool {Esperando(p, f)}
+		Entro? : persona × fila −→ bool
+		FueAtendido? : persona × fila −→ bool
+
+	Generadores:
+		AbrirVentanilla : −→ fila
+		Llegar : persona p × fila f −→ fila {¬Esperando(p, f)}
+		ColarseAdelanteDe : persona p × persona q × fila f −→ fila {¬Esperando(p, f) ∧ Esperando(q, f)}
+		Retirarse : persona p × fila f −→ fila {Esperando(p, f)}
+		Atender : fila f −→ fila {¬Vacia(f)}
+		
+	Otras Operaciones:
+		Vacıa : fila −→ bool
+		Longitud : fila −→ nat
+
+	Axiomas: (∀ p1,p2,p3 : persona) (∀ f: fila)
+	
+		Vacia(AbrirVentanilla() ) ≡ true
+		Vacia( Llegar(p1, f) ) ≡ false
+		Vacia(ColarseAdelanteDe(p1,p2, f) ) ≡ false
+		Vacia(Retirarse(p,f) ) = Longitud(f)=1
+		
+		Esperando( p1, AbrirVentanilla() )  = false
+		Esperando (p1, Llegar(p2, f) ) ≡ p1 = p2 ∨ Esperando(p1, f)
+		
+		Posicion(p1, Llegar(p2, f) ) ≡ if p1=p2 ∧ f=AbrirVentanilla() then
+			1		
+		else
+			1+ Posicion(p1, f)
+		fi
+		
+		Longitud( AbrirVentanilla() ) ≡ 0
+		Longitud (Llegar(p1,f) ) = 1 + Longitud(f)	
+		
+		
+		Retirarse ( p1, Llegar(p2, f ) ) ≡ if p1=p2 then
+			f
+		else
+			 Llegar(p2, Retirarse(p1, f) )
+		fi
+		
+		seColo?(p1, ColarseAdelanteDe(p1, p2, f)) ≡ true
+		seColo?(p1, Llegar(p2, f) ) ≡ p1 != p2 ∧ seColo(p1, f) 
+		
+		Entro(p1, AbrirVentanilla()) ≡ false
+		Entro(p1, Llegar(p2, f ) ) ≡ (p1=p2) ∨  Entro(p1,f) 
+		Entro(p1, Atender(f) ) ≡ Entro(p1,f)
+		Entro(p1, ColarseAdelanteDe(p2,p3,f) )= (p1=p2) ∨ Entro(p1,f)
+		
+		FueAtendido(p1, AbrirVentanilla()) ≡ false
+		Entro(p1, Llegar(p2, f ) ) ≡ FueAtendido(p1,f) 
+		Entro(p1, ColarseAdelanteDe(p2,p3,f) )= FueAtendido(p1,f)
+		Entro(p1, Atender(f) ) ≡ (Posicion(p1, Atender(f)) = 1) ∨  FueAtendido(p1,f)
+		
+		
+		
+		...
+Fin TAD

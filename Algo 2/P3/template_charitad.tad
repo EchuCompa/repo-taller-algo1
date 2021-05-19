@@ -1,0 +1,43 @@
+Axiomas:
+
+•) Estructura
+ab se representa con puntero(estr), donde
+    estr es tupla
+    <altura: nat,
+    izq: puntero(estr),
+    raiz : α,
+    der : puntero(estr)>
+
+
+•) Invariante de Representación
+    Rep^(e)    ⟶ boolean
+    Rep(e) ≡ true ⇐⇒ 
+		
+
+
+•) Función de Abstracción
+    Abs: estr ⟶ tipo {Rep(e)}
+    (∀ e : estr) Abs(e) =obs t: tipo / ...
+
+
+•) Servicios exportados
+    si/no produce aliasing
+    no produce efectos colaterales sobre los argumentos/modifica colateralmente el conjunto argumento
+    posee orden de complejidad temporal de O(x)
+
+•) Interfaces
+    funcion(in tipo: t) -> res: tipo
+    {true} //PRE
+    {res^ =obs p.palabra} //POST
+
+    funcion2(in/out tipo: t)
+    {true} //PRE
+    {res^ =obs p.palabra} //POST
+
+•) Algoritmos
+    ifuncion(in nat:n, inout t:tipo) //un ejemplo tontox
+        {Rep(t) ∧ t=t0}
+        t0[fin] = n
+        {t0=cambiarUltimo(t0, n) ∧ Rep(t)}
+        t0...
+        {t=t0}

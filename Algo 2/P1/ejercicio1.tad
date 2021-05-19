@@ -1,0 +1,73 @@
+TAD secuenciaComprimida(α)
+	Igualdad Observacional:(
+		(∀ s1, s2 : secuCompri(α) ( ( s1 =obs s2 ) ⇐⇒ (vacía?(s1) = vacía?(s2) ∧L (
+			¬vacía?(s1) ⇒L (prim(s1) = prim(s2) ∧ fin(s1) = fin(s2)) )  ) ) 
+		);
+	Géneros: secuCompri
+	Exporta: secuCompri, observadores, generadores, 
+	Usa: Bool, Nat, Tupla, Secuencia
+	
+	Observadores Básicos:
+		vacia? : secuCompri(α) −→ bool
+		prim : secuCompri(α) s −→ s {¬ vacia?(s)}
+		fin : secuCompri(α) s −→ s {¬ vacia?(s)}
+	Generadores:
+		<>:    															  −→ secuCompri(α)
+		• • • : tupla(α, nat) t × secuCompri(α) −→ secuCompri(α) {π₂(t) > 0}
+
+	Otras Operaciones:
+		comprimir: secu(α) -> secuCompri(α)
+		longComprimida : secuComp(α) −→ nat
+		maxApsContiguas : secuComp(α) s −→ α {¬ vacia?(s)}
+		
+		cantAparisContiguas: α x secuComp(α) x nat acc -> secuComp(α) {acc=0}
+		//Devuelve la máxima cantida de apariciones contiguas de un elemento 
+		
+	
+	Axiomas: (∀ s,s1,s2 : secuCompri(α) ) (∀ t,t1,t2 : tupla(α, nat) ) (∀ sec : secu(α)) (∀ e : α )
+		vacía?(<>) ≡ 	true
+		vacía?(t • s) ≡ false
+		prim(t • s) ≡ t
+		fin(t • s) ≡ s
+		
+		comprimir(<>) ≡ <>
+		comprimir(t1 • s) ≡ if vacía?(s) then
+			<t1, 1> • <>
+		else
+			if t1=prim(s) then
+			//Sumo 1 aparicion
+				<  π₁ (t1, π₂ (prim(s))+ 1 > • fin(comprimir(s))
+			else
+				<t1, 1> • fin(comprimir(s))
+			fi
+		fi
+		
+	longComprimida(<>) ≡ 0
+	longComprimida(t • s ) ≡ if vacia?(s) then
+		1
+	else
+		longComprimida(s) + β( π₁(t) != π₁(prim(s) ) )
+	fi 
+		
+	maxApsContiguas(t • s) ≡ if vacía?(s) then
+		π₁(t)
+	else
+		if cantAparisContiguas(π₁(t), t • s, 0) > cantAparisContiguas(maxApsContiguas(s), t • s, 0) then
+			π₁(t)
+		else
+			maxApsContiguas(s)
+		fi
+	fi
+	
+	//acc = acumulador
+	cantAparisContiguas(e, <>, acc) ≡ acc
+	cantAparisContiguas(e, t • s, acc) ≡ if π₁(t)=e then
+		cantAparisContiguas(e,s, acc + π₂(t) )
+	else
+		max( cantAparisContiguas(e, s, 0), acc)
+	fi 
+		
+		
+		
+		...
+Fin TAD

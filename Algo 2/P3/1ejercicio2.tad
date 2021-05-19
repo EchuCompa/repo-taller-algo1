@@ -1,0 +1,71 @@
+Representación:
+	bookface se representa con estr donde 
+		estr es tupla 
+		⟨	
+		amistades: conj(tupla(usuario, usuario)),
+		seguidores: dicc(usuario, conj(usuario)),
+		solicitudesPendientes: dicc(usuario, secu(usuario)),
+		cantAmigos: dicc(usuario, nat)
+		⟩
+
+Solución Informal:
+	1) Las claves de e.seguidores, e.solicitudesPendientes y e.cantAmigos deben ser iguales
+	(No podes ser amigo de vos mismo)
+	2) Ninguna tupla de e.amistades puede tener dos usuarios iguales
+	3) Todos los usuarios de las tuplas de e.amistades deben pertencer a las claves de e.seguidores
+	4) Todos los usuarios que aparecen en los significados de e.seguidores y e.solicitudesPendientes
+	deben pertencer a las claves de e.seguidores
+	5) Si dos usuarios son amigos (en e.amistades) entonces no pueden tener una e.solicitudesPendientes
+	de su amigo 
+	6) La cantidad de amigos en e.cantAmigos debe ser igual a la cantidad de tuplas en las que aparezca
+	el usuario en e.amistades
+	(No podes seguirte o amigarte con vos mismo)
+	7) Las secuencias e.solicitudesPendientes no pueden tener a su clave
+	8) Los conjuntos de e.seguidores no pueden tener a su clave 
+---
+Invariante de Representación:
+	Rep:	estr	->	boolean
+	(∀e: estr) Rep(e)	≡ true ⇐⇒ (1)∧(2)∧(3)∧(4)∧(5)∧(6)∧(7)∧(8)
+		donde: 
+		(1)	≡	claves(e.seguidores)=claves(e.solicitudesPendientes) ∧ claves(e.seguidores)=claves(e.cantAmigos)
+		(2)+(3)	≡	(∀t: tupla(usuario, usuario)) (t ∈ e.amistades ⇒ (π1(t)!=π2(t)) ∧ {π1(t), π2(t)} C claves(e.seguidores)  )
+		(4) ≡ (∀ u : usuario) (def?(u, e.seguidores) ⇒L (obtener(u, e.seguidores)C claves(e.seguidores) ∧
+		 (∀ u1 : usuario) (esta?(u1, obtener(e.solicitudesPendientes)) ⇒ u1 ∈ claves(e.seguidores)  ) ) ) 
+		(5) ≡ (∀ u1, u2 : usuario) ( 
+			(∃ t : tupla(usuario, usuario) ) (t ∈ e.amistades ∧ π1(t)=u1 ∧ π2(t)=u2) ⇐⇒
+				(	( def?(u1, e.seguidores) ∧ def?(u2, e.seguidores)  ) ⇒L  ¬(esta?(u1, obtener(u2, e.solicitudesPendientes)) ∨ 
+				esta?(u2, obtener(u1, e.solicitudesPendientes))  )    )
+		  )
+		(6) ≡ (∀ u : usuario) ( def?(u, e.cantAmigos) ⇒L obtener(u, e.cantAmigos) = cantiAmigos(e.amistades, u)  )
+		(7) ≡ (∀ u : usuario) (def?(u, e.seguidores) ⇒L ¬esta?(u, obtener(u,e.solicitudesPendientes))  )
+		(8) ≡ (∀ u : usuario) (def?(u, e.seguidores) ⇒L ¬ (u ∈ obtener(u,e.seguidores))  )
+		
+cantiAmigos: conj(tupla(usuario,usuario)) x usuario -> nat 
+cantiAmigos(c,u) ≡ if Ø?(c) then 
+			0
+		else
+				1* β(u C {π1(dameUno(c)), π2(dameUno(c))}) + cantiAmigos(sinUno(c), u)
+		fi 
+
+
+
+
+---
+Función de abstracción:
+	Abs:	estr	->	bookface	{Rep(e)}
+	(∀e: estr) Abs(e) =obs b: bookface | (1)∧L ( (2)∧(3)∧(4) )
+		donde: 
+		(1)	≡	usuarios(b) ≡obs claves(e.seguidores)
+		(2)	≡	(∀ u1,u2: usuario) ( (def?(u1, e.seguidores) ∧ def?(u2, e.seguidores)) ⇒L
+			(amigos?(b,u1,u2) = true  ↔ (∃ t : tupla(usuario, usuario) ) (t ∈ e.amistades ∧ π1(t)=u1 ∧ π2(t)=u2)	) )
+		(3) ≡ (∀ u : usuario) ( def?(u, e.seguidores) ⇒L
+			(solicitudesDeAmistadesPendientes(b, u) =obs secuAMultiConj(obtener(u, e.solicitudesPendientes)) ) )
+		(4) ≡ (∀ u : usuario) (  def?(u, e.seguidores) ⇒L
+			( seguidores(b,u) =obs obtener(u, e.seguidores) ) )
+
+		secuAMultiConj: secu(usuario) -> multiconj(usuario)
+		secuAMultiConj(s) ≡ if vacía?(s) then
+			Ø
+		else
+			Ag(prim(s), secuAMultiConj(fin(s)))
+		fi

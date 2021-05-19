@@ -1,0 +1,146 @@
+//Medio que esta mal pensar que la cinta puede empezar no vacía, no es posible generar un objeto "random"
+//Lo que si puede pasar es que la cinta que le llega al electroiman puede ser cualquier cosa
+
+TAD CINTA
+	Igualdad Observacional:
+	( ∀ c1, c2 : cinta) (c1 ≡_obs c2  ↔ (#Celdas(c1)≡#Celdas(c2) ∧L 
+	( ∀ n nat ) (n< #Celdas(c1) →L (CeldaOcupada(n,c1)≡ CeldaOcupada(n,c2))) 
+	( CeldaActual(c1) ≡ CeldaActual(c2) ∧ #Giros←(c1)≡#Giros←(c2) ∧ #Giros→(c1)≡ #Giros→(c2) ) )
+	Generos: CINTA
+	Exporta: nombreTad, observadores, generadores, 
+	Usa: Bool, Nat
+	
+	Observadores Basicos:
+		#Celdas : cinta −→ nat
+		CeldaOcupada? : nat n × cinta c −→ bool {n < #Celdas(c)}
+		CeldaActual : cinta −→ nat
+		#Giros← : cinta −→ nat
+		#Giros→ : cinta −→ nat
+		
+	Generadores:
+		Arrancar : nat n −→ cinta {n > 0}
+		PonerElem : cinta c −→ cinta {¬CeldaActualOcupada?(c)}
+		SacarElem : cinta c −→ cinta {CeldaActualOcupada?(c)}
+		← : cinta −→ cinta
+		→ : cinta −→ cinta
+		
+	Otras Operaciones:
+		CeldaActualOcupada? : cinta −→ bool
+		#Elem : cinta −→ nat
+		#ElemDesde: nat x cinta -> nat 
+		
+	Axiomas: ( ∀ c : cinta) (( ∀ n, n1, n2 : nat ))
+	#Celdas(Arrancar(n1)) ≡ n1
+	#Celdas( PonerElem(Arrancar(n1)) ) ≡ n1
+	#Celdas( SacarElem(Arrancar(n1)) ) ≡ n1
+	#Celdas( ←(Arrancar(n1)) ) ≡ n1
+	#Celdas( →(Arrancar(n1)) ) ≡ n1
+	
+	CeldaActual(Arrancar(n1))) ≡ 0 
+	CeldaActual(→(c)) ≡ 	if (CeldaActual((c)) +1) = #Celdas(n)  then
+		0
+	else
+		CeldaActual((c)) +1
+	fi
+	CeldaActual(←(c)) ≡ 	if (CeldaActual((c)) -1) = -1  then
+		n-1
+	else
+		CeldaActual((c)) -1
+	fi
+	
+	
+	CeldaOcupada(n1, Arrancar(n2))) ≡ false
+	CeldaOcupada?(n, PonerElem(c)) ≡ if CeldaActual?(c) = n then
+		true
+	else
+		CeldaOcupada?(n, →(c) )
+	fi
+	CeldaOcupada?(n, SacarElem(c)) ≡ if CeldaActual?(c) = n then
+		false
+	else
+		CeldaOcupada?(n, →(c) )
+	fi
+	CeldaOcupada?(n, →(c) ) = CeldaOcupada(n, c)
+	CeldaOcupada?(n, ←(c) ) = CeldaOcupada(n, c)
+	
+	#Giros←(Arrancar(n1)) ≡ 0 
+	#Giros←(→(c)) = 	#Giros←(c)
+	#Giros←(←(c)) = 	#Giros←(c) + 1
+	#Giros←(PonerElem(c)) = 	#Giros←(c)
+	#Giros←(SacarElem(c)) = 	#Giros←(c)
+	
+	#Giros→(Arrancar(n1)) ≡ 0
+	#Giros→(→(c)) = 	#Giros→(c)+1 
+	#Giros→(←(c)) = 	#Giros→(c)
+	#Giros→(PonerElem(c)) = 	#Giros→(c)
+	#Giros→(SacarElem(c)) = 	#Giros→(c)
+	
+	CeldaActualOcupada(c) ≡ CeldaOcupada (CeldaActual(c), c)
+	
+	ElemDesde(n, c) ≡ if n=0 then
+		β (CeldaOcupada(n, c)) 
+	else
+		β (CeldaOcupada(n, c))  + ElemDesde(n-1,c)
+	fi 
+	
+	#Elem(c) ≡ ElemDesde(#Celdas(c)-1,c)
+		...
+Fin TAD
+
+TAD ELECTROIMÁN
+	Igualdad Observacional:
+	Generos: electroiman
+	Exporta: electroiman, observadores, generadores, 
+	Usa: Bool, Nat, Cinta
+	
+	igualdad observacional
+(∀ e1,e2 : electroiman) ( e1 =_obs e2 ↔ (Cinta(e1) = Cinta(e2) ∧ ImanPrendido(e1) = ImanPrendido(e2) 
+ 	∧L (ImanPrendido(e1) →L ImanCargado?(e1) = ImanCargado?(e2) ) )   )
+	Observadores Basicos:
+		Cinta : electroiman −→ cinta
+		ImanPrendido? : electroiman −→ bool
+		ImanCargado? : electroiman e −→ bool {ImanPrendido?(e)}
+	Generadores:
+		Arrancar : cinta −→ electroiman
+		Prender : electroiman e −→ electroiman {¬ImanPrendido?(e)}
+		Apagar : electroiman e −→ electroiman  
+		{ImanPrendido?(e) ∧L (ImanCargado?(e) ⇒ ¬CeldaActualOcupada?(e))}
+		← : electroiman −→ electroiman
+		→ : electroiman −→ electroiman
+	Otras Operaciones:
+		CeldaActualOcupada? : electroiman −→ bool
+		#Giros← : electroiman −→ nat
+		#Giros→ : electroiman −→ nat
+		
+	Axiomas: (∀ c : cinta) (∀ e : electroiman)
+	
+		Cinta(Arrancar(c)) ≡ c
+		Cinta( Prender(Arrancar(c)) ) ≡ if CeldaActualOcupada?(c) then
+			SacarElem(c)
+		else
+			c
+		fi 
+		Cinta(Apagar(e)) ≡ cinta(e)
+		Cinta(←(e)) = Cinta(e)
+		Cinta(→(e)) = Cinta(e)
+		
+		ImanPrendido( Arrancar(c) ) ≡ false
+		ImanPrendido( ←(e) )  ≡ ImanPrendido(e)
+		ImanPrendido( →(e) )  ≡ ImanPrendido(e)
+		ImanPrendido ( Prender(e) ) ≡ true
+		ImanPrendido ( Apagar(e) ) ≡ false
+		
+		ImanCargado( Arrancar(c) ) ≡ false
+		ImanCargado( Apagar(e) ) ≡ false
+		ImanCargado (Prender(e) ) ≡ CeldaOcupada(CeldaActual(Cinta(e)),Cinta(e))
+		ImanCargado(←(e)) ≡ ImanCargado(e)
+		ImanCargado(→(e)) ≡ ImanCargado(e)
+		
+					
+		CeldaActualOcupada?(e) ≡ CeldaOcupada(CeldaActual (Cinta(e)), Cinta(e) ) (exportada de cinta)
+		
+		#Giros←(e) = #Giros←(Cinta(e)) (exportada de cinta)
+		#Giros→(e) = #Giros→(Cinta(e)) (exportada de cinta)
+		
+		
+Fin TAD

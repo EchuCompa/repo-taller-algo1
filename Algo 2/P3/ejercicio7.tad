@@ -1,0 +1,67 @@
+Axiomas:
+
+•) Estructura
+planilla se representa con estr, donde
+estr es tupla
+	<detalle: dicc(actividad, tupla< proy: proyecto, mes: mes, horas: nat> ),
+	horasPorMes: dicc(proyecto, array[mes] de horas),
+	ConMasHoras: conj(proyectos)>
+	mes es un entero en el rango 1-12
+
+
+
+•) Invariante de Representación
+	
+		1) Mes debe estar siempre entre 1 y 12
+		2) El tamaño del array de HorasPorMes tiene que ser entre 1 y 12 
+		3) La suma de las horas x mes de cada proyecto de detalle debe ser igual a horasPorMes
+		4) Los proyectos de horasPorMes (sus claves) deben ser iguales a los proyectos de detalle
+		5) Los proyectos de ConMasHoras deben ser los proyectos con más o iguales horas que el resto
+		 , estar incluidos en todos los proyectos y tener todos la misma cantidad de horas totales 
+		
+		 <detalle: dicc(actividad, tupla< proy: proyecto, mes: mes, horas: nat> ),
+		 horasPorMes: dicc(proyecto, array[mes] de horas),
+		 ConMasHoras: conj(proyectos)>
+
+
+    Rep^(e)    ⟶ boolean
+    Rep(e) ≡ true ⇐⇒ 
+		1)  (∀a:actividad)( def?(a, e.detalle) ⇒L 1 ≤ π₂(obtener(a,e.detalle)) ≤ 12) ∧
+		2) (∀p: proyecto)( def?(p, e.horasPorMes) ⇒L 1 ≤ tam(obtener(p,e.horasPorMes)) ≤ 12) ∧
+		3) (∀p: proyecto)( def?(p, e.horasPorMes) ⇒L (∀ m : mes) ( 1 ≤ m ≤ 12 ⇒L 
+			obtener(p, e.horasPorMes)[i] = horasPorMesDeProyecto(e.detalle , claves(e.detalle), p, m ))  ) ∧
+		4) (∀p: proyecto)( def?(p, e.horasPorMes) ⇐⇒ (
+											(∃a:actividad)( def?(a, e.detalle) ∧L π₁(obtener(a,e.detalle)) = p))) ∧
+		5)  (∀p: proyecto)( p ∈ e.conMasHoras ⇐⇒ (∄ a : actividad) ( def?(a, e.detalle) ∧L 
+		horas(π₁(obtener(a,e.detalle)), e.horasPorMes) > horas(p, e.horasPorMes)	) )
+		∧
+		(∀p:proyecto)(p ∈ conMasHoras ⇒L ¬(∃p2:proyecto)(p2 ∈ e.conMasHoras ∧ horas(p) != horas(p2)))
+		
+
+horasPorMesDeProyecto: dicc(actividad, tupla< proy: proyecto, mes: mes, horas: nat> ) data x proyecto 
+x mes x conj(actividad) claves-> horas   {claves c claves(data) }
+horasPorMesDeProyecto(dicc,claves, proye, mes ) ≡ if vacio?(claves)  then
+		0
+	else
+		if π₁(obtener(dameUno(claves), dicc)) = proye ∧ π₂(obtener(dameUno(claves), dicc)) = mes then
+			π₃(obtener(dameUno(claves), dicc))
+		else
+			0
+		fi + horasPorMesDeProyecto(dicc, proye, sinUno(claves))
+	fi
+	
+horas: proyecto p x dicc(proyecto, array[mes] de horas) horas -> nat {def?(p, horas)}
+horas(p, horas) ≡ sumaElemArray(obtener(p, horas))
+
+
+•) Función de Abstracción
+Abs: estr ⟶ planilla {Rep(e)}
+(∀ e : estr) Abs(e) =obs p: planilla / 
+																			actividades(p) = claves(e.detalle) ∧L 
+																			(∀pr:proyecto)(pr ∈ proyectos(a) ⇐⇒ 
+																				(∃a:actividad)(a ∈ actividades(p) ∧L π₁(obtener(a,e.detalle)) = pr)) ∧L
+																			(∀a:actividad)(a ∈ actividades(p) ⇒L 
+																										proyecto(a,p) = π₁(obtener(a,e.detalle)) ∧
+																										mes(a,p) = π₂(obtener(a,e.detalle)) ∧
+																										horas(a,p) = π₃(obtener(a,e.detalle)) ∧
+																			)

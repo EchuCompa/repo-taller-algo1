@@ -1,0 +1,121 @@
+TAD TECNICO es String
+
+TAD Juan (Ergo la empresa de técnicos	)
+	Igualdad Observacional:();
+	Géneros: Juan
+	Exporta: Juan, observadores, generadores, 
+	Usa: Bool, Nat, Direccion , Secu
+	
+	Observadores Básicos:
+		tecnicosOcupados:	Juan -> conj(tecnico)
+		tecnicosDisponibles: Juan -> conj(tecnico)
+		pedidosPendientes: Juan -> secu(direecion)
+		direcTrabajo:  tecnico t x Juan j -> direccion {t ∈ tecnicosOcupados(j)}
+		cantVecesQueFue: tecnico x direccion x juan -> nat 
+		
+	Generadores:
+		nuevaEmpresa:	conj(tecnico) tecnicos -> Juan
+		llegaPedido: direccion pedido x Juan -> Juan
+		terminaTecnico: tecnico t x Juan -> Juan 
+		
+	Otras Operaciones:
+		direMasCercana: direccion dir x secu(direccion) dires -> direccion
+		eliminarE: direccion x secu(dir) s -> direccion {s != <>}
+		tecnicosQueMasVisitaron: direccion x juan -> conj(tecnico)
+		tecnicosQueMasVisitaron2: direccion x juan x conj(tecnico) ts -> conj(tecnico) {¬vacía?(ts)}
+		
+	Axiomas: (∀ Juan : j) (∀ t, t1, t2 : tecnico) (∀ ts : conj(tecnico) ) (∀ d, d1, d2 : direccion)
+	(∀ dires : secu(direccion))
+		
+		
+		tecnicosOcupados(nuevaEmpresa(ts)) ≡ Ø
+		tecnicosOcupados(llegaPedido(d, j)) ≡ if ¬vacía?(tecnicosDisponibles(j)) then
+			tecnicosOcupados(j)
+		else
+			Ag(dameUno(tecnicosDisponibles(j)) , tecnicosOcupados(j))
+		fi
+		tecnicosOcupados(terminaTecnico(t, j)) ≡ if vacía?(pedidosPendientes(j)) then
+			tecnicosOcupados(j)
+		else
+			tecnicosOcupados(j)-{t}
+		fi
+		
+		tecnicosDisponibles(nuevaEmpresa(ts)) ≡ ts
+		tecnicosDisponibles(llegaPedido(d, j)) ≡ if ¬vacía?(tecnicosDisponibles(j)) then
+			sinUno(tecnicosDisponibles(j))
+		else
+			tecnicosDisponibles(j)
+		fi
+		tecnicosDisponibles(terminaTecnico(t, j)) ≡ if vacía?(pedidosPendientes(j)) then
+			Ag(t, tecnicosDisponibles(j))
+		else
+			tecnicosDisponibles(j)
+		fi
+		
+		pedidosPendientes(nuevaEmpresa(ts)) = <>
+		pedidosPendientes(llegaPedido(d, j)) ≡ if ¬vacía?(tecnicosDisponibles(j)) then
+			pedidosPendientes(j)
+		else
+			d • pedidosPendientes(j)
+		fi
+		pedidosPendientes(terminaTecnico(t, j)) ≡ if pedidosPendientes(j)=<> then
+			pedidosPendientes(j)
+		else
+			eliminarE(pedidosPendientes(j) , direMasCercana(direcTrabajo(t)))
+		fi
+		
+		eliminarE(<>,e) = <>
+		eliminarE(x • s, e) ≡ if x=e then
+			fin(s)
+		else
+			prim(s)•sacar(fin(s),e)
+		fi
+		
+		direMasCercana(d, x • s) ≡ if s=<> then
+			x
+		else
+			if dist(x,d) ≤ dis(direMasCercana(d, fin(s)))  then
+				x
+			else
+				direMasCercana(d, fin(s))
+			fi
+		fi				
+		
+		
+		direcTrabajo(t, llegaPedido(d,j)) ≡	if ¬(t ∈ tecnicosOcupados(j)) then
+			//Ergo recién se desocupo, porque cuándo uno "lo ingresa no estaba ocupado"
+			d
+		else
+			direcTrabajo(t,j)
+		fi 
+		direcTrabajo(t1, terminaTecnico(t2, j)) ≡ if pedidosPendientes(j)=<> then
+			direcTrabajo(t1, j)
+		else
+			direMasCercana(direcTrabajo(j), pedidosPendientes(j))
+		fi
+		
+		cantVecesQueFue(t, d, nuevaEmpresa(ts) ) ≡ 0
+		cantVecesQueFue(t, d1, llegaPedido(d2,j)) ≡ 
+			β(d1=d2 ∧ t ∈ tecnicosOcupados(llegaPedido(d2,j)) ∧ t ∈ tecnicosOcupados(j) ) + cantVecesQueFue(t,d1,j)
+		cantVecesQueFue(t1,d, terminaTecnico(t2, j)) ≡ 
+			β(t1=t2 ∧ d= direcTrabajo(t, terminaTecnico(t2, j) ) ) + cantVecesQueFue(t1,d, j) 
+		
+		tecnicosQueMasVisitaron2(d, j) ≡ tecnicosQueMasVisitaron2(d,j , tecnicosDisponibles(j) ∪ tecnicosOcupados(j))
+		
+		tecnicosQueMasVisitaron2(d, j, ts) ≡ if #ts=1 then
+			dameUno(ts)
+		else
+			if cantVecesQueFue(dameUno(ts),d,j) > cantVecesQueFue(dameUno(tecnicosQueMasVisitaron2(d,j, sinUno(ts))),d,j) then
+				dameUno(ts)
+			else
+				if  cantVecesQueFue(dameUno(ts),d,j) = cantVecesQueFue(dameUno(tecnicosQueMasVisitaron2(d,j, sinUno(ts))),d,j) then
+					Ag(dameUno(ts), tecnicosQueMasVisitaron2(d,j, sinUno(ts)) )
+				else
+					tecnicosQueMasVisitaron2(d,j, sinUno(ts))
+				fi
+			fi
+		fi
+		
+		
+		...
+Fin TAD

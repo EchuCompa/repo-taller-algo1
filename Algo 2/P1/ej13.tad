@@ -1,0 +1,85 @@
+//En la parada 0 esta vacío el bondi, porque recién salio de la terminal vite. 
+
+//a)
+
+TAD PASAJEROS es MultiConjunto(Nat)
+
+//La cague, no era por ahí, abajo lo hice de vuelta
+TAD COLECTIVO
+	Igualdad Observacional:(
+		(∀ c1, c2 : colectivo) ( c1 =obs c2 ⇐⇒ (ultParada(c1)=ultParada(c2) ∧ #Asientos(c1)= #Asientos(c2)
+		∧ paradaActual(c1)=paradaActual(c2) ∧ pasajerosSentados(c1)=pasajerosSentados(c2) ∧
+		pasajerosParados(c1)=pasajerosParados(c2)))
+		);
+	Géneros: nombreTad
+	Exporta: nombreTad, observadores, generadores, 
+	Usa: Bool, Nat, MultiConjunto
+	
+	Observadores Básicos:
+		ultParada: colectivo -> nat 
+		#Asientos:	colectivo -> nat
+		paradaActual: colectivo -> nat 	
+		pasajerosSentados : colectivo -> pasajeros
+		PasajerosParados: colectivo -> pasajeros
+		
+	Generadores:
+		recorrido:	nat paradas x nat asientos -> colectivo { (esPar(asientos) }
+		proximaParada: colectivo c x pasajeros nuevos_pasajeros  -> colectivo {paradaActual(c) < ultParada(c) 
+		∧ (∀ pasajero : nat) (pasajero ∈ nuevos_pasajeros ⇒L  paradaActual(c) < pasajero ≤ ultParada(c)) }
+		
+	//Lo único que identifica a los pasajeros es la parada donde se bajan.
+		
+	Otras Operaciones:
+		obtenerNPasajeros: pasajeros x nat n -> pasajeros
+		AsientoLibres: colectivo -> nat 
+		
+	Axiomas: (∀ par, l : nat) (∀ p, p1, p2 : pasajeros) (∀ c : colectivo)
+		ultParada(recorrido(par))	= par 
+		ultParada(proximaParada(c, p)) = ultParada(c)
+		
+		#Asientos(recorrido(par, l)) ≡ l
+		#Asientos(proximaParada(c, p)) ≡ #Asientos(c)
+		
+		paradaActual(recorrido(par)) ≡ 0
+		paradaActual(proximaParada(c,p)) ≡ 1 + ParadaActual(c)
+		
+		obtenerNPasajeros(p,n) ≡ if n=0 ∨ p=Ø then
+			Ø
+		else
+			Ag( dameUno(p), obtenerNPasajeros(sinUno(p), n-1))
+		fi
+		
+		AsientoLibres(c) ≡ #Asientos(c) - # (pasajerosSentados(c)) 
+		
+		if
+		pasajerosSentados(recorrido(par)) ≡ Ø
+		pasajerosSentados(proximaParada(c,p)) ≡ 
+		if AsientoLibres(c) > 0   then //Si hay asientos disponibles
+			obtenerNPasajeros(AsientoLibres(c), PasajerosParados(c) ) //Se sientan los que estban parados 
+			∪ if ( AsientoLibres(c) > #(PasajerosParados(c)) ∧ p != Ø then
+				obtenerNPasajeros( AsientoLibres(c) - #(PasajerosParados(c), p) //Se sientan los que entran
+			else
+				Ø
+			fi
+		else
+			Ø
+		fi
+		fi ∪ pasajerosSentados(c,p)- {paradaActual(c)} //Hace que se bajen los pasajeros que llegaron a su parada
+
+
+		PasajerosParados(recorrido(par)) ≡ Ø
+		PasajerosParados(proximaParada(c,p)) ≡ p ∪ pasajerosParados(c,p) - {paradaActual(c)} //Hace que se bajen los
+		//pasajeros que llegaron a su parada
+		
+Fin TAD
+
+
+//b)
+Modificaciones que habría que hacer:
+-Personas Sentadas pasaria a devolver una secuencia ya que ahora nos importaria el orden en el que están
+sentadas las personas ya que a partir de eso las quitariamos de la lista de personas sentadas.
+-Crearía un tipo persona que sea una tupla <nat (parada), bool (movilidad reducida) > para poder
+reconocer a las personas por algo distinto a la parada donde se bajan
+-Debería modificar el comportamiento de personas sentadas de tal modo que primero agregue a las
+personas de movilidad reducida, para eso haría un #CantMovilidadReducida(), que cuente las apariciones 
+de las mismas en conjuntos y secuencias.

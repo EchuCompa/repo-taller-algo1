@@ -1,0 +1,130 @@
+TAD COLA es COLA_DE_PRIORIDAD(Persona)
+TAD DNI es NAT
+TAD BIEN es BOOL
+TAD PERSONA es TUPLA(bien, dni)
+
+
+//PB= PersonaBien
+
+TAD COLA extiende Secu(Persona)
+	Otras Operaciones:
+		hayPB: cola -> bool
+		devolverPB: cola c -> persona {hayPB(c)}
+		estaEsperando: persona x cola -> bool
+		colaSinCliente: persona p x cola c  -> cola {estaEsperando(p,c)}
+
+
+	Axiomas: (∀ c,c1,c2: cola) (∀p : persona )
+		hayPB(c) ≡ if c=Ø then
+			false
+		else
+			(π₁(prim(c) = true ) ∨ hayPB(fin(c))
+		fi 
+		
+		devolverPB(c) ≡ if π₁(prim(c) = true)  then
+			prim(c)
+		else
+			devolverPB(fin(c))
+		fi 
+		
+		estaEsperando(p,c) ≡ if c=Ø then
+			false
+		else
+			(prim(c)=p) ∨ estaEsperando(p, fin(c))
+		fi
+		
+		colaSinCliente(p, Ø) ≡ Ø
+		colaSinCliente(p, x•c) ≡ if x=p then
+			c
+		else
+			x • colaSinCliente(p,c)
+		fi
+		...
+Fin TAD
+
+
+
+TAD BANCO
+	Igualdad Observacional:(∀ b1,b2: banco) ( (b1 =obs b2) ⇐⇒ (cola(b1) = cola(b2)
+	∧ Clientes(b1) = Clientes(b2) ∧ (∀ c : nat) (0 ≤ c ≤ 1 ⇒L 
+		ClientesAtendidosCaja(b1,c)= 	ClientesAtendidosCaja(b2,c)
+	)) );
+	Géneros: BANCO
+	Exporta: banco, observadores, generadores,
+	Usa: Bool, Nat, Cola, Persona, Conjunto
+
+	//Caja 0 = A, Caja 1 = B
+	Observadores Básicos:
+		cola:	banco	-> cola
+		Clientes: banco  -> conj(personas)
+		//Todos los clientes que entraron y salieron
+		ClientesAtendidosCaja: nat caja x banco -> conj(personas)  {0 ≤ caja ≤ 1}
+
+	Generadores:
+		Apertura:			-> banco
+		EntraPersona:  persona x banco -> banco
+		AtenderCliente: nat caja x banco b  -> banco {0 ≤ caja ≤ 1 ∧
+			( (caja=0 ∧ hayPB(cola(b))) ∨ (caja=1 ∧ ¬vacia(cola(b)) )}
+		//Retirarse:	persona p x banco b -> banco {estaEsperando(p,cola(b))} ???
+		// Si buscara diferenciar entre las personas que estan adentro y las que estan afuera entonces
+	 // debería  agregarlo cómo un generador y modificar los observadores básicos. 
+		
+
+
+	Otras Operaciones:
+		Retirarse:	persona p x banco b -> banco {estaEsperando(p,cola(b))}
+
+	Axiomas: (∀ b: banco) (∀ p,p1,p2 : persona) (∀ c, c1,c2: nat) (z)
+
+
+
+		cola(Apertura()) ≡ <>
+		cola(EntraPersona(p, b)) ≡ p • cola(b)
+		cola(AtenderCliente(0, b)) ≡ colaSinCliente(devolverPB(cola(b)), cola(b))
+		cola(AtenderCliente(1, b)) ≡ if hayPB(cola(b))  then
+			colaSinCliente(devolverPB(cola(b)), cola(b))
+		else
+			fin(cola(b))
+		fi
+
+
+		Clientes(Apertura()) ≡ Ø
+		Clientes(EntraPersona(p,b)) ≡ p • Clientes(b)
+		Clientes(Atender(c,b)) ≡ Clientes(b)
+		
+		ClientesAtendidosCaja(c,Apertura()) ≡ Ø
+		ClientesAtendidosCaja(c, EntraPersona(p, b)) ≡ ClientesAtendidosCaja(c, b)
+		//Caja A
+		ClientesAtendidosCaja(0,Atender(1,b)) ≡ ClientesAtendidosCaja(0, b)
+		ClientesAtendidosCaja(0,Atender(0,b)) ≡ Ag(devolverPB(cola(b)) ,ClientesAtendidosCaja(0, b))
+		//Caja B
+		ClientesAtendidosCaja(1,Atender(0,b)) ≡ ClientesAtendidosCaja(1, b)
+		ClientesAtendidosCaja(1,Atender(1,b)) ≡ 
+		Ag( ( if hayPb(cola(b)) then
+			devolverPB(cola(b))
+		else
+			prim(cola(b))
+		fi  ) , ClientesAtendidosCaja(1, b))
+		
+
+		Retirarse(p1,EntraPersona(p2, b)) ≡ if p1=p2 then
+			b
+		else
+			EntraPersona(p2, Retirarse(p1,b))
+		fi
+		Retirarse(p, AtenderCliente(c,b)) ≡ Retirarse(p, b)
+
+		...
+Fin TAD
+
+b)
+
+//"modelar una cantidad no determinada a priori de cajas de cada tipo"
+-Se debería agregar al generador apertura ciertos conjuntos que definan de que tipo va a ser 
+cada una de las cajas y cuántas van a ser. Luego no es más que a través de un observador el cuál
+pregunte de que tipo es la caja que uno va a utilizar definir su comportamiento en base a lo hecho en
+el inciso anterior
+
+//"si las personas pudieran colarse"
+-Habría que agregar una operación "Colarse" al igual que en el ejercicio 10, o si se necesita saber quien
+se colo entonces se debería agregar "Colarse" a los generadores y definir el resto de cosas en base a eso.

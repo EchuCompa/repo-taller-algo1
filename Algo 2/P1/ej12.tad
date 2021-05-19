@@ -1,0 +1,130 @@
+	
+//ERRORESSSSSSSSSSSSSSSSSSSSSSSSSS
+
+//Pequeño problema: NO SE PUEDE sumar baldosa y accion porque son de tipos distintos, así que habría que cambiar
+// el tipo de baldosa
+
+//Segundo error: El tirarDado siempre devuelve lo mismo, por lo tanto habría que modificar el generador
+// "TirarDado" para que reciba un parametro "dado" que este entre 1 y 6 para avanzar, así de simple
+
+TAD CASILLERO es Nat
+TAD ACCION es Int
+
+TAD TABLERO
+	Igualdad Observacional:(
+		(∀ t1, t2 : tablero) ( t1 =_obs t2 ↔ (longitud(t1) = longitud(t2) ∧L
+		(∀ c : casillero) ( 0 < c < longitud(t1) ⇒L (hayAccionBaldosa(c,t1) = hayAccionBaldosa(c,t2) ∧L
+		 (hayAccionBaldosa(c,t1) ⇒L (accionBaldosa(c,t1) = accionBaldosa(c,t2) ) ) )  )
+		 ) )
+		);
+	Géneros: tablero
+	Exporta: tablero, observadores, generadores, 
+	Usa: Bool, Nat, Int
+	
+	Observadores Básicos:
+		longitud: tablero -> nat
+		hayAccionBaldosa: casillero c x tablero t  -> bool { enRango(c,t) }
+		accionBaldosa: casillero c x tablero t -> accion      {hayAccionBaldosa(n,t)}
+			
+	Generadores:
+		nuevoTablero:		nat n-> tablero {n > 0}
+		agregarAccionBaldosa: casillero c x accion a x tablero t -> tablero { enRango(c,t) ∧ enRango(c+a,t) }
+		
+	Otras Operaciones:
+		enRango: casillero x tablero -> bool
+	Axiomas: (∀ n, c1, c2: nat) (∀ t : tablero) (∀ a : accion)
+		
+		enRango(c1, t) ≡ 0 < c1 < longitud(t) 
+		
+		longitud(nuevoTablero(n)) ≡ n
+		longitud(agregarAccionBaldosa(n,t)) ≡ longitud(t)
+		
+		hayAccionBaldosa(nuevoTablero(n)) ≡ false
+		hayAccionBaldosa(c1, agregarAccionBaldosa(c2,a,t)) ≡ (c1 = c2) ∨ hayAccionBaldosa(c1, t)
+		
+		accionBaldosa(c1, agregarAccionBaldosa(c2,a,t)) ≡ if c1=c2 then
+			a
+		else
+			accionBaldosa(c1, t)
+		fi
+		
+		...
+Fin TAD
+
+TAD JUGADOR es Nat
+
+TAD OCA
+//Comienza el jugador 1
+
+	Igualdad Observacional:
+	(∀ o1, o2: oca)(o1 =obs o2 ⇐⇒  tableroAsociado(o1) =obs tableroAsociado(o2) ∧
+				(∀ j: jugador)(0 ≤ j ≤ 1 ⇒L dadoEnCadajugada(j, o1) =obs dadoEnCadajugada(j, o2))) ;
+	Géneros: oca
+	Exporta: oca, observadores, generadores, 
+	Usa: Bool, Nat, Secuencia, Tablero
+	
+	Observadores Básicos:
+		tableroAsociado:	oca -> tablero
+		dadosTiradosJugador: oca x jugador j -> secu(nat) { 1 ≤ j ≤ 2}
+		
+		
+	Generadores:
+		iniciarOca:	 tablero -> oca
+		tirarDado: oca o x jugador j -> oca 
+		{ (∀ o: oca, ∀ j: jugador) (¬hayGanador(o) ∧
+		(j=1 ⇒L ( long(dadosTiradosJugador(o, 1)) = long(dadosTiradosJugador(o, 2))  )  ) ∨
+		(j=2 ⇒L ( long(dadosTiradosJugador(o, 1))-1 = long(dadosTiradosJugador(o, 1)) ) ) )}
+		//Tiran alternadamente y siempre comienza el jugador 1.
+		
+	Otras Operaciones:
+		gano: oca x jugador j -> bool {1 ≤ jugador ≤ 2 }
+		pasoPorCasillero: oca o x  jugador j x casillero c -> bool {enRango(c, tableroAsociado(o) ) ∧ 1 ≤ j ≤ 2 }
+		trayectoria: oca o × jugador j -> secu(casillero) {1 ≤ j ≤ 2 }
+		tiradaDado: -> nat //Defino que los numeros del dado estan entre 1 y 6
+		avanzarPosicion: oca o x jugador j -> {1 ≤ j ≤ 2 ∧ ¬vacía?(trayectoria(o,j)) 
+			 ∧ ¬vacía?(dadosTiradosJugador(o,j))  }
+		saltoBaldosa: oca o x jugador j -> {1 ≤ j ≤ 2 ∧ ¬vacía?(trayectoria(o,j)) 
+			 ∧ ¬vacía?(dadosTiradosJugador(o,j))  }
+			 
+	Axiomas: (∀ o : oca ) (∀ c1, c2: casillero) (∀ t : tablero) (∀ a : accion) (∀ sec : secu ) (∀ j1,j2: jugador)
+		tableroAsociado(iniciarOca(t)) ≡ t
+		tableroAsociado(tirarDado(o)) ≡ tableroAsociado(o)
+		
+		tiradaDado() ≡ dameUno({1,2,3,4,5,6})
+		
+		dadosTiradosJugador(iniciarOca(t), j1) ≡ <>
+		dadosTiradosJugador(tirarDado(t,j1), j2) ≡ if j1=j2 then
+			tirarDado() • dadosTiradosJugador(t, j2)
+		else
+			dadosTiradosJugador(t, j2)
+		fi
+		
+		avanzarPosicion(o, j) ≡ ult(trayectoria(o,j)) + ult(dadosTiradosJugador(o,j) )
+		saltoBaldosa(o,j) ≡ if hayAccionBaldosa(avanzarPosicion(o,j), tableroAsociado(o)) 
+		then
+			accionBaldosa(avanzarPosicion(o,j), tableroAsociado(o))
+		else
+			0
+		fi 
+		
+		
+		trayectoria(iniciarOca(t), j) = 0 • <>
+		trayectoria(tirarDado(o,j1), j2) ≡ if j1=j2 then
+			if avanzarPosicion(o,j) ≥ longitud(tableroAsociado(o)) then
+				longitud(tableroAsociado(o))
+			else
+				if (avanzarPosicion(o,j) + saltoBaldosa(o,j))
+				 ≥ longitud(tableroAsociado(o)) then
+					longitud(tableroAsociado(o))
+				else
+					avanzarPosicion(o,j) + saltoBaldosa(o,j)
+				fi
+			fi
+		else
+			trayectoria(o,j2)
+		fi
+		
+		pasoPorCasillero(o,j,c) ≡ c ∈ trayectoria(o,j )
+		
+		...
+Fin TAD

@@ -1,0 +1,150 @@
+TAD EXTIENDE NAT
+	Otras Operaciones:
+		mitad:	nat	-> nat 	
+	Axiomas:
+		mitad(n) ≡ if n=0 then
+			0
+		else
+			if  n=1 then
+				1 //Redondeo para arriba, ergo pasan los primeros n/2 o n/2+1.
+			else
+				1 + mitad(n-2)
+			fi
+		fi
+		// mitad(n,m) ≡ if m*2 ≥ n then m else mitad(n, m+1) fi, M=1 siempre, esta es la forma de Chara, muy bella
+		...
+Fin TAD
+
+TAD FILAVE extiende Secu(String)
+	Otras Operaciones:
+		finFilaDesde: filave f  x nat n -> filave {n ≤ long(f)}
+		mediaFila: filave f -> filave 
+		
+	Axiomas: (∀ n : nat) (∀ f: filave)
+		
+		finFilaDesde(f, n) ≡ if  n=0 then
+			Ø
+		else
+			Ag(ult(f), finFilaDesde(com(f), n-1)
+		fi
+		
+		mediaFila(f) ≡ finFilaDesde(f, mitad(long(f)))
+
+		
+		...
+Fin TAD
+
+TAD CABINA, MONTO es NAT
+TAD VEHICULO es STRING
+TAD CABINAS es Conj(Cabina)
+TAD MONTOS es Dicc(vehiculo, monto)
+
+TAD PEAJE
+	Igualdad Observacional:(
+		(∀p1,p2: peaje)(p1=p2 ⇐⇒ cabinas(p1)=cabinas(p2) ∧ limite(p1)=limite(p2) ∧ 
+															(∀c: cabina)(c ∈ cabinas(p1) ⇒ vehiculosEnCabina(p1,c)=vehiculosEnCabina(p2,c) ∧
+																															dineroCabina(p1,c)=dineroCabina(p2,c) ∧
+																															(∀v:vehiculo)(
+																																historialVehiculosPorCabina(p1,c,v)=historialVehiculosPorCabina(p2,c,v)
+																																)
+																					) ∧
+															(∀v: vehiculo)(precioVehiculo(p1,v)=precioVehiculo(p2,v))		
+		);
+	Géneros: cabina
+	Exporta: cabina, observadores, generadores, 
+	Usa: Bool, Nat, Conjunto, Filave, 
+	
+	Observadores Básicos:
+		cabinas:	peaje -> cabinas
+		limite: peaje -> nat
+		montoVehiculo: vehiculo v x peaje p  -> monto {def?(v, montos(p))}
+		filaCabina: cabina c  x peaje p -> filave {c ∈ cabinas(p)}
+		dineroCabina: cabina c x peaje p -> monto   {c ∈ cabinas(p)}
+		cantTipoVehiculoCabina: nat cabina x vehiculo v x peaje p -> nat {c ∈ cabinas(p) ∧ def?(v, montos(p))}
+		//Decisión: yo agarre todos los vehiculos que pasaron/estan en una cabina, no hice una distinción entre
+		//los que todavía no pasaron y los que estan todavía en la fila de la cabina.
+		
+	Generadores:
+		comienzaPeaje:	cabinas x  montos x nat limite		-> peaje
+		llegaVehiculo: vehiculo v x nat cabina x peaje p -> peaje {c ∈ cabinas(p) ∧ def?(v, montos(p))}
+		registrarCobro: cabina c x peaje p -> peaje { c ∈ cabinas(p) ∧L vacía?(filaCabina(c,p) ) }
+		
+	Otras Operaciones:
+		hayCabinaEnLimite: cabinas c x peaje p -> bool  {c ∈ cabinas(p)}
+		cabinasMayorCantidadDeXVehiculo: vehiculo v x peaje p -> conj(cabina) {def?(v, montos(p))}
+		cabinasMayorCantidadDeXVehiculov2: vehiculo v x cabinas cs x peaje p -> conj(cabina) {def?(v, montos(p))}
+		maxDeVehiculosXTipo: vehiculo v x cabinas cs x peaje p -> nat {def?(v, montos(p)) ∧ cs ⊆ cabinas(p)}
+		
+	Axiomas: (∀ c, c1, c2 : cabina) (∀ cs : cabinas) (∀ v, v1, v2 : vehiculo) (∀ m,l : monto) (∀ p : peaje) (∀ ms : montos) 
+		
+		cabinas(comienzaPeaje(cs, ms, l) ) ≡  cs
+		cabinas(llegaVehiculo(v,c,p)) ≡ cabinas(p)
+		cabinas(registrarCobro(c,p) ) ≡ cabinas(p)
+		
+		limite(comienzaPeaje(cs, ms, l)) ≡ l
+		limite(llegaVehiculo(v,c,p)) ≡ limite(p)
+		limite(registrarCobro(c,p) ) ≡ limite(p)
+		
+		montoVehiculo(v, comienzaPeaje(cs, ms, l)) ≡ obtener(v, ms) 
+		montoVehiculo(v, llegaVehiculo(v,c,p)) ≡ montoVehiculo(v, p)
+		montoVehiculo(v, registrarCobro(c,p)) ≡ montoVehiculo(v, p)
+		
+		hayCabinaEnLimite(cs, p) ≡ if cs= Ø then
+			false
+		else
+			(long(filaCabina(dameUno(cs), p)) = limite(p) ) ∨ hayCabinaEnLimite(sinUno(cs), p)
+		fi
+		
+		filaCabina(c, comienzaPeaje(cs, ms, l) ) ≡ <>
+		filaCabina(c1 , llegaVehiculo(v,c2,p) ) ≡ if hayCabinaEnLimite(cabinas(p), p) then
+			if c1=c2 then
+				v • mediaFila(filaCabina(c1, p))
+			else
+				mediaFila(filaCabina(c1, p))
+			fi
+		else
+			if c1=c2 then
+				v • filaCabina(c1, p)
+			else
+				filaCabina(c1, p)
+			fi
+		fi 
+		filaCabina(c1, registrarCobro(c2, p)) ≡ if c1=c2 then
+			fin(filaCabina(c1, p))
+		else
+			filaCabina(c1,p)
+		fi 
+		
+		dineroCabina(c, comienzaPeaje(cs, ms, l)) ≡ 0
+		dineroCabina(c1, llegaVehiculo(v,c2,p) ) ≡ dineroCabina(c1,p)
+		dineroCabina(c1, registrarCobro(c2,p) ) ≡ if c1=c2 then
+			montoVehiculo(prim(filaCabina(p)), p) 
+		else
+			0
+		fi + dineroCabina(c1,p)
+		 
+		cantTipoVehiculoCabina(c, v ,comienzaPeaje(cs, ms, l)) ≡ 0
+		cantTipoVehiculoCabina(c1, v1, llegaVehiculo(v2,c2,p) ) ≡ β(v1=v2 ∧ c1=c2) + cantTipoVehiculoCabina(c1,v1, p)
+		cantTipoVehiculoCabina(c1, v,  registrarCobro(c2,p) ) ≡ cantTipoVehiculoCabina(c1,v1, p)
+		
+		maxDeVehiculosXTipo(v, cs, p ) ≡ if cs= Ø then
+			0
+		else
+			max(cantTipoVehiculoCabina(dameUno(cs), v, p), maxDeVehiculosXTipo(v, sinUno(cs), p) )
+		fi
+		
+		cabinasMayorCantidadDeXVehiculo(v, cs, p) ≡ if cs = Ø  then
+			Ø
+		else
+			Ag( if maxDeVehiculosXTipo(v, cabinas(p), p) = cantTipoVehiculoCabina(dameUno(cs), v, p) then
+				dameUno(cs)
+			else
+				Ø
+			fi ) , cabinasMayorCantidadDeXVehiculo(v, sinUno(cs) , p) )
+		fi
+		
+		
+		
+		
+		...
+Fin TAD

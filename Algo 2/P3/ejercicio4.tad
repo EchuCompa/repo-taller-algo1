@@ -1,0 +1,51 @@
+Axiomas:
+
+•) Estructura
+ab se representa con puntero(estr), donde
+    estr es tupla
+    <altura: nat,
+    izq: puntero(estr),
+    raiz : α,
+    der : puntero(estr)>
+
+
+//El error que tiene TODO el ejercicio es que uso estr, cuándo en realidad debería
+//usar puntero(estr)
+
+•) Invariante de Representación
+    Rep^(e)    ⟶ boolean
+    Rep(e) ≡ true ⇐⇒ e.altura = 1 + max( *(e.izq).altura, *(e.izq).altura) ) 
+		∧ ( ∀ i : nat ) ( 0 ≤ i < long(recorrerNodos(e) ) ) ⇒L  recorrerNodos(e)[i] != *e )
+			// No exite un puntero dentro del arbol binario que lo haga "volver a subir"
+		
+//Recorre todos los nodos	
+recorrerNodos(e) = if e.izq = null ∧ e.der = null then
+	<>
+	else
+		if e.izq = null then
+			e.der • recorrerNodos(* e.der)
+		else
+			if e.der = null then
+				e.izq • recorrerNodos(* e.izq)
+			else
+				(e.izq • (e. der • (recorrerNodos(*e.izq ) &  recorrerNodos(*e.der) ) )  
+			fi
+		fi
+	
+	fi
+	
+	nueva interfaz
+
+•) Función de Abstracción
+//b)
+    Abs: estr ⟶ ab {Rep(e)}
+    (∀ e : estr) Abs(e) =obs ab: arbolBinario / e.raiz = raiz(ab) ∧ e.altura =  altura(ab) ∧ Abs(*e.izq) =obs izq(ab) ∧
+		Abs(*e.der) =obs der(ab)
+
+
+
+//c)
+
+Abs: estr ⟶ ab {Rep(e)}
+(∀ e : estr) Abs(e) =obs bin(i, r, d) : arbolBinario / e.raiz = r ∧ e.altura =  altura(bin(i, r, d)) ∧ Abs(*e.izq) =obs i) ∧
+Abs(*e.der) =obs d

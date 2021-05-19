@@ -1,0 +1,77 @@
+
+1.2)
+
+	"Aclaración": Todos los casos planteados son teniendo en cuenta que la matriz ingresada es una matriz en degradé. 
+	1.2.1)"Mejor caso"
+	En el mejor caso el elemento A[0,0] > val, y por lo tanto el resto de los elemento son mayores a val, de este modo las operaciones que 
+	ejecutara tienen complejidad temporal: 
+	
+	funcion ValorEnMatriz(matriz de enteros A, entero val)
+
+		n := Long(A) Θ(1)
+		i := 0 Θ(1)
+			mientras i < n y A[0, i] =< v hacer  Θ(1) (porque todos los elementos son mayores a val y nunca se cumple " A[0, i] =< v")
+				i := i + 1
+			fin
+			colLim := i − 1 Θ(1)
+			i := 0 Θ(1)
+			mientras i < n y A[i, 0] =< v hacer Θ(1) (porque todos los elementos son amyores a val y nunca se cumple " A[0, i] =< v")
+				i := i + 1
+			fin
+			filLim := i − 1 Θ(1) 
+			para i := 0 . . . filLim hacer Θ(1)
+				para j := 0 . . .colLim hacer Θ(1)
+					si A[i, j] = val entonces Θ(1) (porque filim =-1 y  colLim = -1, por lo tanto no itera ninguna vez ya que 0 > -1 )
+						devolver true
+					fin
+				fin
+			fin
+		devolver false Θ(1)
+		fin
+
+De este modo nos queda que en el "Mejor Caso" es 
+Θ( ValorEnMatriz) = Θ(1) + Θ(1)+ + Θ(1) + Θ(1) + Θ(1) + Θ(1) + Θ(1)+ + Θ(1) + Θ(1) + Θ(1) =
+10*Θ(1) = Θ(1)
+
+1.2.2)"Peor caso"
+n = Long(A)
+En el peor caso el entero val no esta en la matriz. Pero la complejidad temporal depende
+ si val es mayor o no a 2*n (cantidad de elementos de la primera fila + la primera columna), puesto que ahí la complejidad varia ya que
+ al ser todos los elementos distintos los dos posibles menores valores para A[n-1,0] y  A[0,n-1] son n y 2*n-1. De este modo si val no 
+ supera estos valores entonces filLim y/o colLim no van a valer n y el total de iteraciones del segundo ciclo no va a ser n^2.  
+
+"Caso 1: val > 2*(n+1) y A[n-1,0], A[0,n-1] <= Val"
+
+
+funcion ValorEnMatriz(matriz de enteros A, entero val)
+
+	n := Long(A) Θ(1)
+	i := 0 Θ(1)
+		mientras i < n y A[0, i] =< v hacer  Θ(n) (porque todos los elementos de la primer fila 	son menores iguales a val y siempre se 
+																						cumple " A[0, i] =< v", por lo tanto va a hacer n iteraciones )
+			i := i + 1 Θ(1)
+		fin
+		colLim := i − 1 Θ(1)
+		i := 0 Θ(1)
+		mientras i < n y A[i, 0] =< v hacer Θ(n) (porque todos los elementos de la primer columna son menores iguales a val y siempre se 
+																							cumple " A[i, 0] =< v", por lo tanto va a hacer n iteraciones el cilo )
+			i := i + 1 Θ(1)
+		fin
+		filLim := i − 1 Θ(1) 
+		para i := 0 . . . filLim hacer Θ(n)			- Es un ciclo de Θ(n) dentro de otro ciclo Θ(n), por lo que es Θ(n^2)
+			para j := 0 . . .colLim hacer Θ(n)    - Ya que ∑^(n)_(i=0) Θ(n) = n*Θ(n) = Θ(n^2)
+				si A[i, j] = val entonces Θ(1) (nunca lo encuentra pues Val no pertence a la matriz )
+					devolver true
+				fin
+			fin
+		fin
+	devolver false Θ(1)
+	fin
+	
+	Θ( ValorEnMatriz) = Θ(n) + Θ(n) + Θ(n^2) = max(Θ(2n), Θ(n^2)) = Θ(n^2)
+	
+	"Caso 2 : val < 2*(n+1), pero val no esta en la matriz"
+	
+Uno de los primeros dos whiles, o ambos van a llegar hasta i = val, por lo que el segundo ciclo va a iterar n*val, o val^2 veces.
+De este modo cómo la complejidad del segundo ciclo es la mayor nos va a quedar que:
+Θ(ValorEnMatriz)= val^2 o n*val 

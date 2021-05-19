@@ -1,0 +1,75 @@
+TAD PESO, CP es Nat
+TAD PAQUETE es TUPLA(Peso, Cp)
+TAD CARTERO es TUPLA(String, Cp)
+//Le agrego el string para que pueda haber multiples carteros con un mismo CP
+
+TAD OFICINA
+	Igualdad Observacional:();
+	Géneros: oficina
+	Exporta: oficina, observadores, generadores, 
+	Usa: Bool, Nat
+	
+	Observadores Básicos:
+		deposito: oficina -> multiconj(paquete) 
+		carteros: oficina-> conj(cartero)
+		cuantosRebotados: oficina -> nat 
+		
+		//estaRepartiendo: cartero x oficina -> bool //Esta forma da más información pero queda más claro
+		//bolsaCartero: cartero x oficina -> bolsa {estaRepartiendo(c, oficina)}, pa saber su bolsa 
+		
+	Generadores:
+		apertura: conj(cartero) carteros	-> oficina
+		llegaCamion: multiconj(paquete) carga x oficina o -> oficina
+		reparteCartero: cartero c x multiconj(paquete) bolsa x multiconj(paquete) rebotes x  oficina o -> oficina 
+					{c ∈ carteros(o) ∧ bolsa ⊂ deposito(o) ∧ pesoBolsa(bolsa) ≤ 25 ∧ rebotes ⊂ bolsa ∧ 
+					(∀ p : paquete ) ( p ∈ bolsa ⇒L π₂(p)= π₂(c)  )}
+					
+		//saleCartero: cartero x bolsa x oficina -> oficina {¬estaRepartiendo(c, oficina)}
+		//terminaCartero: cartero x rebotes x oficina -> oficina {estaRepartiendo(c, oficina)}
+		
+	Otras Operaciones:
+		pesoBolsa:  multiconj(paquete) bolsa -> nat
+		esCPValido: cp x conj(cartero) -> bool
+		
+	Axiomas: (∀ c : cartero) (∀ cs: multiconj(cartero) ) (∀o : oficina ) (∀p : paquete )
+	(∀ car, bol, reb : multiconj(paquete))
+		
+		esCPValido(cp, cs) ≡ if cs=Ø then
+			false
+		else
+			(cp= π₂(dameUno(cs)) ∨ (esCPValido(cp, sinUno(cs)))
+		fi
+	
+		deposito(apertura(cs) ) ≡ Ø
+		deposito(llegaCamion(car,o)) ≡ if car=Ø then
+			deposito(o)
+		else
+			if esCPValido(π₂(dameUno(car)) , carteros(o) ) then
+				Ag(dameUno(car), deposito(llegaCamion(sinUno(car),o)))
+			else
+				deposito(llegaCamion(sinUno(car),o))
+			fi
+		fi
+		deposito(reparteCartero(c,bol,rebo,o)) ≡ deposito(o) - {bol - rebo}
+		
+		carteros(apertura(cs)) ≡ cs
+		carteros(llegaCamion(car, o)) ≡ carteros(o)
+		carteros(reparteCartero(c, bol, reb,o)) ≡ if bol=reb then
+			carteros(o) - {c}
+		else
+			carteros(o)
+		fi
+			
+		cuantosRebotados(apertura(cs)) ≡ 0
+		cuantosRebotados(llegaCamion(car, o)) ≡ cuantosRebotados(o)
+		cuantosRebotados(reparteCartero(c, bol, reb,o)) ≡ #reb + cuantosRebotados(o)
+		
+		pesoBolsa(bol) ≡ if bol=Ø then
+			0
+		else
+			π₁(dameUno(bol)) + pesoBolsa(sinUno(bol))
+		fi
+		
+		
+		...
+Fin TAD

@@ -1,0 +1,119 @@
+TAD CARPINTERO es Tupla(Nombre, Nivel)
+TAD CARPINTEROS es conj(carpintero)
+TAD NIVEL es Nat
+TAD NOMBRE es String
+//Asumo que todos tienen nombres distintos
+
+TAD CCC
+	Igualdad Observacional:();
+	Géneros: CCC
+	Exporta: CCC, observadores, generadores, 
+	Usa: Bool, Nat, Tupla, String
+
+//Y si te preguntas "Pero che Echu, para que diferencias entre aprendices y maestros si los hiciste como una tupla"?
+// "Ni idea toy re loco" sera mi respuesta
+
+	Observadores Básicos:
+		maestros: ccc -> carpinteros
+		aprendices:	ccc -> carpinteros
+		tutorDeAprendiz: carpintero c x ccc -> carpintero {c ∈ aprendices(ccc)}
+		desertores: ccc -> carpinteros 
+		
+	Generadores:
+		iniciaCurso: conj(carpintero)	maestros		-> ccc {(∀ c : carpintero) (c ∈ maestros ⇒L π₂(c) = 10 )}
+		ingresa: carpintero c x ccc -> ccc {π₂(c)=1 ∧ (∄ c1 : carpintero) (c1 ∈ desertores(ccc) ∧ π₁(c) ≡ π₁(c1) )
+																			∧ c ∉ (carpinteros)}
+		avanzar: carpintero c x ccc -> ccc {π₂(c)<10 ∧ c ∈ aprendices(ccc)}
+		desertar: carpintero c x ccc -> ccc {c ∈ (carpinteros) }
+		
+	Otras Operaciones:
+		carpinteros: ccc -> carpinteros
+		descendientes: carpintero c x ccc -> carpinteros {c ∈ carpinteros(c)}
+		estudiantes: carpintero c x ccc -> carpintero {c ∈ carpinteros(c)}
+		auxEstudiantes: carpintero c x carpinteros cs x ccc -> carpintero
+		tutoresValidos: carpintero c x carpinteros cs -> carpinteros {c ∉ cs }
+		
+	Axiomas: (∀ cs : carpinteros) (∀ c,c1,c2 : carpintero) (∀ ccc : CCC) 
+		
+		carpinteros(ccc) ≡ aprendices(ccc) ∪ maestros(ccc)
+		
+		maestros(iniciaCurso(cs)) ≡ cs
+		maestros(ingresa(c, ccc)) ≡ maestros(ccc)
+		maestros(avanzar(c,ccc)) ≡ if π₂(c)=9  then
+			Ag(c, maestros(ccc))
+		else
+			maestros(ccc)
+		fi 
+		maestros(desertar(c,ccc)) ≡ if c ∈ maestros(ccc) then
+			maestros(ccc)- {c}
+		else
+			maestros(ccc)
+		fi
+		
+		aprendices(iniciaCurso(cs)) ≡ Ø
+		aprendices(ingresa(c, ccc)) ≡ Ag(c, aprendices(cc))
+		aprendices(avanzar(c,ccc)) ≡ if π₂(c)=9  then
+			aprendices(ccc)- {c}
+		else
+			aprendices(ccc)
+		fi 
+		aprendices(desertar(c,ccc)) ≡ if c ∈ aprendices(ccc) then
+			aprendices(ccc)- {c}
+		else
+			aprendices(ccc)
+		fi
+		
+		tutoresValidos(c, cs) ≡ if cs=Ø then
+			Ø
+		else
+			if π₂(dameUno(cs)) > π₂(c) then
+				Ag(dameUno(cs), tutoresValidos(c, sinUno(cs)))
+			else
+				tutoresValidos(c, sinUno(cs))
+			fi
+		fi
+		
+		tutorDeAprendiz(c1, ingresa(c2, ccc)) ≡ if c1=c2 then
+			dameUno( tutoresValidos(carpinteros(ccc)) )
+		else
+			tutoresValidos(carpinteros(ccc))
+		fi
+		tutorDeAprendiz(c1, avanzar(c2,ccc)) ≡ if c1=c2 ∧ (π₂(c1)+1 ≡ π₂(tutorAprendiz(c1, ccc)) then
+			dameUno(tutoresValidos(carpinteros(ccc)) )
+		else
+			tutorDeAprendiz(c1, ccc)
+		fi 
+		tutorDeAprendiz(c1, desertar(c2,ccc)) ≡ if c2 = tutorDeAprendiz(c1, ccc) then
+			dameUno(tutoresValidos(carpinteros(ccc) - {c2}) )
+		else
+			tutorDeAprendiz(c1, ccc)
+		fi
+		
+		estudiantes(c,ccc) ≡ auxEstudiantes(c,cs, carpinteros(ccc)- {c})
+		
+		auxEstudiantes(c, cs, ccc) ≡ if cs=Ø then
+			Ø
+		else
+			if dameUno(cs) = tutorDeAprendiz(c, ccc) then
+				Ag(dameUno(cs), auxEstudiantes(c,cs,ccc))
+			else
+				auxEstudiantes(c,cs,ccc)
+			fi
+		fi
+		
+		descendientes(c, ccc) ≡ estudiantes(c, ccc) ∪ estudiantesDeEstudiantes( estudiantes(c, ccc), ccc)
+		
+		//Que belleza
+		estudiantesDeEstudiantes(cs, ccc) ≡ if cs= Ø then
+			Ø
+		else
+			if estudiantes(dameUno(cs),ccc) ≡ Ø then
+				estudiantesDeEstudiantes(sinUno(cs),ccc)
+			else
+				estudiantesDeEstudiantes(estudiantes(dameUno(cs)), ccc) ∪ estudiantesDeEstudiantes(sinUno(cs),ccc)
+			fi
+		fi 
+		
+		
+		...
+Fin TAD

@@ -1,0 +1,84 @@
+TAD MIEMBRO, SEGUIDOR es STRING
+
+
+//Rosetree extendido
+
+TAD RED
+	Igualdad Observacional:((∀r1, r2 : red) ();
+	Géneros: RED
+	Exporta: , observadores, generadores, 
+	Usa: Bool, Nat
+	
+	Observadores Básicos:
+		miembros: red r -> conj(miembro)
+		seguidores: miembro m x red r  −→ conj(miembro) {esMiembro(m,r)}
+		cancelados: red r -> conj(miembro) 
+		
+	Generadores:
+		crearRed: miembro lider −→ red
+		agregarMiembro: miembro convocado x miembro convocador x red r -> red { ¬esMiembro(convocado, r) ∧ 
+																							esMiembro(convodcador, r) ∧ ¬ (convocado ∈ cancelados(r) )  }
+		enjuiciar: miembro juzgado x conj(miembro) jueces x red r  -> red {esMiembro(juzgado, r) ∧	#miembros(r) ≥ 4 ∧ 
+		  											#jueces=3 ∧ ¬(∃ m: miembro) (esMiembro(m,r) ∧ (m ∈ jueces ∨ m =juzgado) )}
+		absolver: miembro vuelveeee x red r -> red {¬esMiembro(vuelveeee, r) ∧ vuelveeee ∈ echados(r)}
+		
+		
+	Otras Operaciones:
+		esMiembro: miembro m x red r -> bool
+		descendientes: miembro m x red r -> bool {esMiembro(m,r)}
+		cancelado: miembro juzgado x conj(miembro) jueces x red r  -> bool {esMiembro(juzgado,r) ∧ #miembros(r) ≥ 4 ∧ 
+																	#jueces=3 ∧ ¬(∃ m: miembro) (esMiembro(m,r) ∧ (m ∈ jueces ∨ m =juzgado) ) }
+		seguidoresDeSeguidores: conj(miembro) seguidores x 	red r -> conj(miembro) descendientes 
+		
+	Axiomas: (∀r: red) (∀ m, m1, m2, m3, m4 : miembro) (∀ ms: conj(miembro))
+		
+		esMiembro(m, r) ≡ m ∈ miembros(r)
+		cancelado(m, ms, r) ≡ ¬(∃ m1,m2 miembro) (m1,m2 ∈ ms ∧ m1 =! m2 ∧ m1,m2 ∈ descendientes(m,r))
+		
+		miembros(crearRed(m)) = Ag(m, Ø)
+		miembros(agregarMiembro(m1,m2,r)) = Ag(m1,miembros(r))
+		miembros(enjuiciar(m,ms,r)) = if cancelado(r,m,t) then
+																		(miembros(r)-descendientes(m,r))-{m}
+																	else
+																		miembros(r)
+																	fi
+		miembros(absolver(m,r)) = miembros(r)
+									
+		seguidores(m1, crearRed(m2)) ≡ Ø
+		seguidores(m1, agregarMiembro(m2,m3,r)) ≡ if m1=m2 then
+			Ag(m3, seguidores(m1))
+		else
+			seguidores(m1)
+		fi
+		seguidores(m1, enjuiciar(m2,ms,  r)) ≡ if cancelado(r,m2,ms) then
+			(seguidores(m1, r) - descendientes(m,r)) {m2} 
+		else
+			seguidores(m1, r)
+		fi
+		seguidores(m1, absolver(m2,r)) ≡ seguidores(m1,r)
+		
+		cancelados(crearRed(m)) = Ag(m, Ø)
+		cancelados(agregarMiembro(m1,m2,r)) = Ag(m1,miembros(r))
+		cancelados(enjuiciar(m,ms,r)) = if cancelado(r,m,ms) then
+																		Ag(m, cancelados(r)-descendientes(m,r) )
+																	else
+																		cancelados(r)
+																	fi
+		cancelados(absolver(m,r)) = cancelados(r)- {m}
+		
+		descendientes(m, r) ≡ seguidores(m, r) ∪ seguidoresDeSeguidores( seguidores(m), r)
+		
+		//Que belleza
+		seguidoresDeSeguidores(ms, r) ≡ if ms= Ø then
+			Ø
+		else
+			if seguidores(dameUno(ms),r) ≡ Ø then
+				seguidoresDeSeguidores(sinUno(ms),r)
+			else
+				seguidoresDeSeguidores(seguidores(dameUno(ms)), r) ∪ seguidoresDeSeguidores(sinUno(ms),r)
+			fi
+		fi 
+		
+		
+		...
+Fin TAD

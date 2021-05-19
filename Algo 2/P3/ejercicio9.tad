@@ -1,0 +1,46 @@
+Axiomas:
+
+•) Estructura
+alarmas se representa con estr, donde
+	estr es tupla
+	<
+	alarmas: dicc(alarma, conj(sensor)), --> alarma: sensores prendidos
+	sensores: dicc(sensor, tupla<alarmas: conj(alarma), umbral: nat, medicion: nat>) --> sensor: alarmas, umbral, valor ultima medicion
+	>
+
+
+•) Invariante de Representación
+
+		1) todos los sensores en alarmas tienen que la ultima medicion supere el umbral (y que esten en sensores 
+			y que efectivamente con ese sensor)
+		2) las claves de alarmas tienen que ser igual a las alarmas en sensores 
+		3) Los sensores de alarmas estan contenidos en las claves de sensores 
+		4) umbral tiene que ser mayor a 0 (lo pide el generador)
+		
+		Rep^(e)	⟶ boolean
+		Rep(e) ≡ true ⇐⇒ (3) (∀a:alarma)(def?(a, e.alarmas) ⇒L obtener(a,e.alarmas) ⊆ claves(e.sensores))) ∧L
+											(2) (∀a:alarma)(def?(a, e.alarmas) ⇐⇒ 
+													(∃s:sensor)(def?(s,e.sensores) ⇒L a ∈ obtener(s,e.sensores).alarmas)) ∧L
+											(1) (∀a:alarma)(def?(a,e.alarmas) ⇒L
+																					(∀s:sensor)(s ∈ obtener(a,e.alarmas) ⇐⇒ 
+																											(a ∈ obtener(s,e.sensores).alarmas ∧
+																											obtener(s,e.sensores).medicion > obtener(s,e.sensores).umbral))
+																			)
+											(4) (∀s:sensor)(def?(s,e.sensores) ⇒L obtener(s,e.sensores).umbral > 0)
+	
+	
+	•) Función de Abstracción
+		Abs: estr ⟶ _tipo_ {Rep(e)}
+		(∀ e : estr) Abs(e) =obs p:planta / 
+																			(∀s:sensor)(esSensor(p,s) ⇐⇒ def?(s,e.sensores)) ∧
+																			(∀a:alarma)(esAlarma(p,a) ⇐⇒ def?(a,e.alarmas)) ∧
+																			(∀a:alarma)(esAlarma(p,a) ⇒L 
+																									(∀s:sensoresAlarma)(s ∈ sensoresAlarma ⇒L (
+																											a ∈ obtener(s,e.sensores).alarma 
+																										)) ∧
+																			//no puedo usar sensoresAlarma(p,a) = obtener(a,e.alarmas) porque en el 2do solo estan los prendidos
+																			(∀s:sensor)(esSensor(p,s) ⇒L obtener(s,e.sensores).umbral = umbral(p,s) ∧
+																																		obtener(s,e.sensores).medicion = medicion(p,s))
+																			
+																			
+		
